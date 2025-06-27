@@ -13,6 +13,7 @@ import { getDashboardStats } from "./routes/analytics";
 import {
   getAllOrders,
   getOrderById,
+  createOrder,
   updateOrder,
   updateOrderStatus,
 } from "./routes/orders";
