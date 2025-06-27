@@ -45,6 +45,9 @@ export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterOptions>({});
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [showEditOrder, setShowEditOrder] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -56,6 +59,7 @@ export default function Orders() {
       const queryParams = new URLSearchParams();
 
       if (filters.search) queryParams.append("search", filters.search);
+      if (filters.status) queryParams.append("status", filters.status);
 
       const response = await fetch(`/api/orders?${queryParams}`);
       const data = await response.json();
@@ -248,11 +252,11 @@ export default function Orders() {
                 </div>
               </div>
               <Select
-                defaultValue="all"
+                value={filters.status || "all"}
                 onValueChange={(value) =>
                   setFilters({
                     ...filters,
-                    // Add status filter logic here when needed
+                    status: value === "all" ? undefined : value,
                   })
                 }
               >
@@ -337,11 +341,21 @@ export default function Orders() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setShowOrderDetails(true);
+                              }}
+                            >
                               <Eye className="h-4 w-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setShowEditOrder(true);
+                              }}
+                            >
                               <Edit className="h-4 w-4 mr-2" />
                               Edit Order
                             </DropdownMenuItem>
