@@ -56,9 +56,9 @@ const navigationItems = [
     badge: null,
   },
   {
-    name: "Photos",
-    href: "/photos",
-    icon: Camera,
+    name: "Settings",
+    href: "/settings",
+    icon: Settings,
     badge: null,
   },
 ];
