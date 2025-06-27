@@ -30,6 +30,7 @@ import {
   Shirt,
 } from "lucide-react";
 
+// Dynamic navigation items with real-time badges
 const navigationItems = [
   {
     name: "Dashboard",
@@ -41,19 +42,19 @@ const navigationItems = [
     name: "Inventory",
     href: "/inventory",
     icon: Package,
-    badge: null,
+    badge: badges.inventory > 0 ? badges.inventory : null,
   },
   {
     name: "Orders",
     href: "/orders",
     icon: ShoppingCart,
-    badge: 3, // Example: 3 pending orders
+    badge: badges.orders > 0 ? badges.orders : null,
   },
   {
     name: "Customers",
     href: "/customers",
     icon: Users,
-    badge: null,
+    badge: badges.customers > 0 ? badges.customers : null,
   },
   {
     name: "Settings",
@@ -66,6 +67,48 @@ const navigationItems = [
 export function Navigation() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [badges, setBadges] = useState({
+    orders: 0,
+    inventory: 0,
+    customers: 0,
+  });
+
+  // Fetch badge counts on component mount and periodically
+  useEffect(() => {
+    const fetchBadgeCounts = async () => {
+      try {
+        // Fetch pending orders count
+        const ordersResponse = await fetch("/api/orders?status=pending");
+        const ordersData = await ordersResponse.json();
+
+        // Fetch low stock items count
+        const inventoryResponse = await fetch(
+          "/api/inventory?stockStatus=low_stock",
+        );
+        const inventoryData = await inventoryResponse.json();
+
+        // Fetch customers with pending deliveries
+        const customersResponse = await fetch(
+          "/api/customers/pending-deliveries",
+        );
+        const customersData = await customersResponse.json();
+
+        setBadges({
+          orders: ordersData.data?.length || 0,
+          inventory: inventoryData.data?.length || 0,
+          customers: customersData.data?.length || 0,
+        });
+      } catch (error) {
+        console.error("Error fetching badge counts:", error);
+      }
+    };
+
+    fetchBadgeCounts();
+
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchBadgeCounts, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/dashboard" && location.pathname === "/") return true;
@@ -120,7 +163,10 @@ export function Navigation() {
             <Shirt className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-slate-900">
+            <h1
+              className="text-lg font-bold text-slate-900"
+              style={{ font: "700 18px/28px 'Jacques Francois', serif" }}
+            >
               Stoik
             </h1>
             <p className="text-xs text-slate-600 -mt-1">Inventory System</p>
