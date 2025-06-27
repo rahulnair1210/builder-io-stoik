@@ -43,6 +43,10 @@ export function BulkOrderForm({
   onSubmit,
 }: BulkOrderFormProps) {
   const [products, setProducts] = useState<TShirt[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    customer,
+  );
   const [orderItems, setOrderItems] = useState<BulkOrderItem[]>([
     { tshirtId: "", quantity: 1 },
   ]);
@@ -56,8 +60,13 @@ export function BulkOrderForm({
   useEffect(() => {
     if (open) {
       fetchProducts();
+      fetchCustomers();
     }
   }, [open]);
+
+  useEffect(() => {
+    setSelectedCustomer(customer);
+  }, [customer]);
 
   const fetchProducts = async () => {
     try {
@@ -66,6 +75,16 @@ export function BulkOrderForm({
       setProducts(data.data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await fetch("/api/customers");
+      const data = await response.json();
+      setCustomers(data.data || []);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
     }
   };
 
@@ -129,7 +148,10 @@ export function BulkOrderForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!customer) return;
+    if (!selectedCustomer) {
+      alert("Please select a customer");
+      return;
+    }
 
     const validItems = orderItems.filter(
       (item) => item.tshirt && item.quantity > 0,
@@ -155,14 +177,14 @@ export function BulkOrderForm({
     }));
 
     const order = {
-      customerId: customer.id,
-      customer,
+      customerId: selectedCustomer.id,
+      customer: selectedCustomer,
       items: orderItemsData,
       status: "pending" as Order["status"],
       totalCost: totals.totalCost,
       totalSelling: totals.totalSelling,
       orderDate: new Date().toISOString(),
-      shippingAddress: customer.address,
+      shippingAddress: selectedCustomer.address,
       paymentMethod: orderData.paymentMethod,
       paymentStatus: orderData.paymentStatus,
       notes: orderData.notes,
@@ -198,27 +220,63 @@ export function BulkOrderForm({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Customer Info */}
-          {customer && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">{customer.name}</h3>
-                    <p className="text-sm text-slate-600">{customer.email}</p>
-                    <p className="text-sm text-slate-600">{customer.phone}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-slate-600">Previous Orders</p>
-                    <p className="font-medium">{customer.totalOrders}</p>
-                    <p className="text-sm text-accent">
-                      ${customer.totalSpent.toLocaleString()} spent
-                    </p>
+          {/* Customer Selection */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="space-y-4">
+                <Label>Select Customer</Label>
+                <Select
+                  value={selectedCustomer?.id || ""}
+                  onValueChange={(value) => {
+                    const customer = customers.find((c) => c.id === value);
+                    setSelectedCustomer(customer || null);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a customer..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.map((customer) => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{customer.name}</span>
+                          <span className="text-sm text-slate-500 ml-2">
+                            {customer.email}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Customer Info Display */}
+              {selectedCustomer && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium">{selectedCustomer.name}</h3>
+                      <p className="text-sm text-slate-600">
+                        {selectedCustomer.email}
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        {selectedCustomer.phone}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-slate-600">Previous Orders</p>
+                      <p className="font-medium">
+                        {selectedCustomer.totalOrders}
+                      </p>
+                      <p className="text-sm text-accent">
+                        ${selectedCustomer.totalSpent.toLocaleString()} spent
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
 
           {/* Order Items */}
           <div className="space-y-4">
