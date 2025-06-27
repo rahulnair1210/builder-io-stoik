@@ -50,6 +50,7 @@ export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [showEditOrder, setShowEditOrder] = useState(false);
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
 
   useEffect(() => {
     fetchOrders();
@@ -302,7 +303,25 @@ export default function Orders() {
         {/* Orders Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle>Recent Orders</CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant={viewMode === "table" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("table")}
+                >
+                  Table
+                </Button>
+                <Button
+                  variant={viewMode === "grid" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                >
+                  Grid
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -317,7 +336,8 @@ export default function Orders() {
                     <TableHead>Total</TableHead>
                     <TableHead>Profit</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>Order Date</TableHead>
+                    <TableHead>Payment Received</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -355,6 +375,15 @@ export default function Orders() {
                         <span className="text-slate-600">
                           {formatDate(order.orderDate)}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        {order.paymentDate ? (
+                          <span className="text-accent font-medium">
+                            {formatDate(order.paymentDate)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">Pending</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
