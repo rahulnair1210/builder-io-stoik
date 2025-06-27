@@ -44,9 +44,7 @@ export function BulkOrderForm({
 }: BulkOrderFormProps) {
   const [products, setProducts] = useState<TShirt[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    customer,
-  );
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(customer);
   const [orderItems, setOrderItems] = useState<BulkOrderItem[]>([
     { tshirtId: "", quantity: 1 },
   ]);
@@ -161,6 +159,23 @@ export function BulkOrderForm({
       return;
     }
 
+    // Check stock availability for all items
+    const stockErrors = [];
+    for (const item of validItems) {
+      if (!item.tshirt) continue;
+
+      if (item.tshirt.stockLevel === 0) {
+        stockErrors.push(`${item.tshirt.name} (${item.tshirt.size} ${item.tshirt.color}) is out of stock`);
+      } else if (item.quantity > item.tshirt.stockLevel) {
+        stockErrors.push(`Only ${item.tshirt.stockLevel} units of ${item.tshirt.name} (${item.tshirt.size} ${item.tshirt.color}) available, but ${item.quantity} requested`);
+      }
+    }
+
+    if (stockErrors.length > 0) {
+      alert("Stock validation failed:\n" + stockErrors.join("\n"));
+      return;
+    }
+
     const totals = calculateTotals();
 
     const orderItemsData: OrderItem[] = validItems.map((item, index) => ({
@@ -258,18 +273,12 @@ export function BulkOrderForm({
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-medium">{selectedCustomer.name}</h3>
-                      <p className="text-sm text-slate-600">
-                        {selectedCustomer.email}
-                      </p>
-                      <p className="text-sm text-slate-600">
-                        {selectedCustomer.phone}
-                      </p>
+                      <p className="text-sm text-slate-600">{selectedCustomer.email}</p>
+                      <p className="text-sm text-slate-600">{selectedCustomer.phone}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-slate-600">Previous Orders</p>
-                      <p className="font-medium">
-                        {selectedCustomer.totalOrders}
-                      </p>
+                      <p className="font-medium">{selectedCustomer.totalOrders}</p>
                       <p className="text-sm text-accent">
                         ${selectedCustomer.totalSpent.toLocaleString()} spent
                       </p>
@@ -297,17 +306,13 @@ export function BulkOrderForm({
                     <div className="flex-1">
                       <Label>Product</Label>
                       <Select
-                        value={item.tshirtId}
-                        onValueChange={(value) =>
-                          handleItemChange(index, "tshirtId", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a product" />
-                        </SelectTrigger>
-                        <SelectContent>
+                        <Input
                           {products.map((product) => (
-                            <SelectItem key={product.id} value={product.id}>
+                            <SelectItem
+                              key={product.id}
+                              value={product.id}
+                              disabled={product.stockLevel === 0}
+                            >
                               <div className="flex items-center gap-2">
                                 {product.name} - {product.size} {product.color}
                                 <Badge variant="outline">
@@ -320,7 +325,7 @@ export function BulkOrderForm({
                                       : "destructive"
                                   }
                                 >
-                                  {product.stockLevel} in stock
+                                  {product.stockLevel === 0 ? "Out of Stock" : `${product.stockLevel} in stock`}
                                 </Badge>
                               </div>
                             </SelectItem>
