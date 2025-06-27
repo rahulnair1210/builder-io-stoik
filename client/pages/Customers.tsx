@@ -366,17 +366,19 @@ export default function Customers() {
                         </div>
 
                         <div className="flex items-center gap-6">
-                          <div className="text-center">
-                            <p className="text-sm text-slate-600">Orders</p>
-                            <p className="font-semibold">
+                          <div className="text-center min-w-[80px] p-3 bg-slate-50 rounded-lg border">
+                            <p className="text-xs text-slate-500 mb-1">
+                              Orders
+                            </p>
+                            <p className="text-lg font-bold text-slate-900">
                               {customer.totalOrders}
                             </p>
                           </div>
-                          <div className="text-center">
-                            <p className="text-sm text-slate-600">
+                          <div className="text-center min-w-[100px] p-3 bg-slate-50 rounded-lg border">
+                            <p className="text-xs text-slate-500 mb-1">
                               Total Spent
                             </p>
-                            <p className="font-semibold text-accent">
+                            <p className="text-lg font-bold text-accent">
                               ${customer.totalSpent.toLocaleString()}
                             </p>
                           </div>
