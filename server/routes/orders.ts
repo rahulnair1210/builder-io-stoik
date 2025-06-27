@@ -226,11 +226,24 @@ export const updateOrder: RequestHandler = (req, res) => {
       });
     }
 
-    mockOrders[orderIndex] = {
+    // Handle payment date logic
+    const updatedOrder = {
       ...mockOrders[orderIndex],
       ...updates,
       updatedAt: new Date().toISOString(),
     };
+
+    // Set payment date when status changes to paid
+    if (updates.paymentStatus === "paid" && !updatedOrder.paymentDate) {
+      updatedOrder.paymentDate = new Date().toISOString();
+    }
+
+    // Remove payment date if status changes back to pending
+    if (updates.paymentStatus === "pending") {
+      updatedOrder.paymentDate = undefined;
+    }
+
+    mockOrders[orderIndex] = updatedOrder;
 
     const response: ApiResponse<Order> = {
       data: mockOrders[orderIndex],
@@ -263,11 +276,19 @@ export const updateOrderStatus: RequestHandler = (req, res) => {
       });
     }
 
-    mockOrders[orderIndex] = {
+    const updatedOrder = {
       ...mockOrders[orderIndex],
       status,
       updatedAt: new Date().toISOString(),
     };
+
+    // Auto-mark as paid when delivered
+    if (status === "delivered" && !updatedOrder.paymentDate) {
+      updatedOrder.paymentStatus = "paid";
+      updatedOrder.paymentDate = new Date().toISOString();
+    }
+
+    mockOrders[orderIndex] = updatedOrder;
 
     const response: ApiResponse<Order> = {
       data: mockOrders[orderIndex],
@@ -293,11 +314,23 @@ export const createOrder: RequestHandler = (req, res) => {
       ...orderData,
       id: `ORD${Date.now()}`,
       profit: orderData.totalSelling - orderData.totalCost,
+      // Set payment date if order is marked as paid
+      paymentDate:
+        orderData.paymentStatus === "paid"
+          ? new Date().toISOString()
+          : undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
     mockOrders.push(newOrder);
+
+    // Update customer totals
+    const { getAllCustomers, updateCustomer } = require("./customers");
+    // This is a mock update - in real implementation, you'd update the database
+    console.log(
+      `Order ${newOrder.id} created for customer ${newOrder.customerId}`,
+    );
 
     const response: ApiResponse<Order> = {
       data: newOrder,
