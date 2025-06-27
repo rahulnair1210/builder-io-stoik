@@ -10,7 +10,12 @@ import {
   updateStock,
 } from "./routes/inventory";
 import { getDashboardStats } from "./routes/analytics";
-import { getAllOrders, getOrderById, updateOrderStatus } from "./routes/orders";
+import {
+  getAllOrders,
+  getOrderById,
+  updateOrder,
+  updateOrderStatus,
+} from "./routes/orders";
 import {
   getAllCustomers,
   getCustomerById,
@@ -56,6 +61,7 @@ export function createServer() {
   // Orders routes
   app.get("/api/orders", getAllOrders);
   app.get("/api/orders/:id", getOrderById);
+  app.put("/api/orders/:id", updateOrder);
   app.patch("/api/orders/:id/status", updateOrderStatus);
 
   // Customer routes

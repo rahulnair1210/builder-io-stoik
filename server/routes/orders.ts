@@ -210,6 +210,43 @@ export const getOrderById: RequestHandler = (req, res) => {
   }
 };
 
+export const updateOrder: RequestHandler = (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const orderIndex = mockOrders.findIndex((o) => o.id === id);
+    if (orderIndex === -1) {
+      return res.status(404).json({
+        data: null,
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    mockOrders[orderIndex] = {
+      ...mockOrders[orderIndex],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const response: ApiResponse<Order> = {
+      data: mockOrders[orderIndex],
+      success: true,
+      message: "Order updated successfully",
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error updating order:", error);
+    res.status(500).json({
+      data: null,
+      success: false,
+      message: "Failed to update order",
+    });
+  }
+};
+
 export const updateOrderStatus: RequestHandler = (req, res) => {
   try {
     const { id } = req.params;
