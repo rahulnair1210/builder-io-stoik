@@ -250,16 +250,19 @@ export default function Inventory() {
                 </div>
               </div>
               <Select
-                value={filters.category || ""}
+                value={filters.category || "all"}
                 onValueChange={(value) =>
-                  setFilters({ ...filters, category: value || undefined })
+                  setFilters({
+                    ...filters,
+                    category: value === "all" ? undefined : value,
+                  })
                 }
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {CATEGORIES.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
@@ -268,16 +271,19 @@ export default function Inventory() {
                 </SelectContent>
               </Select>
               <Select
-                value={filters.size || ""}
+                value={filters.size || "all"}
                 onValueChange={(value) =>
-                  setFilters({ ...filters, size: value || undefined })
+                  setFilters({
+                    ...filters,
+                    size: value === "all" ? undefined : value,
+                  })
                 }
               >
                 <SelectTrigger className="w-[120px]">
                   <SelectValue placeholder="Size" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Sizes</SelectItem>
+                  <SelectItem value="all">All Sizes</SelectItem>
                   {SIZES.map((size) => (
                     <SelectItem key={size} value={size}>
                       {size}
@@ -286,16 +292,19 @@ export default function Inventory() {
                 </SelectContent>
               </Select>
               <Select
-                value={filters.stockStatus || ""}
+                value={filters.stockStatus || "all"}
                 onValueChange={(value) =>
-                  setFilters({ ...filters, stockStatus: value || undefined })
+                  setFilters({
+                    ...filters,
+                    stockStatus: value === "all" ? undefined : value,
+                  })
                 }
               >
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Stock Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Stock</SelectItem>
+                  <SelectItem value="all">All Stock</SelectItem>
                   <SelectItem value="in_stock">In Stock</SelectItem>
                   <SelectItem value="low_stock">Low Stock</SelectItem>
                   <SelectItem value="out_of_stock">Out of Stock</SelectItem>
