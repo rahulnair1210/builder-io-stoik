@@ -38,22 +38,59 @@ export function Navigation() {
     inventory: 0,
     customers: 0,
   });
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: "low_stock",
-      message: "5 products are running low on stock",
-      read: false,
-    },
-    {
-      id: 2,
-      type: "new_order",
-      message: "Order #1234 has been placed",
-      read: false,
-    },
-  ]);
+  const [notifications, setNotifications] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("notifications");
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    }
+    return [
+      {
+        id: 1,
+        type: "low_stock",
+        message: "5 products are running low on stock",
+        read: false,
+      },
+      {
+        id: 2,
+        type: "new_order",
+        message: "Order #1234 has been placed",
+        read: false,
+      },
+    ];
+  });
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Persist notifications to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("notifications", JSON.stringify(notifications));
+    }
+  }, [notifications]);
+
+  // Function to add new notifications
+  const addNotification = (type: string, message: string) => {
+    const newNotification = {
+      id: Date.now(),
+      type,
+      message,
+      read: false,
+    };
+    setNotifications((prev) => [newNotification, ...prev]);
+  };
+
+  // Listen for global notification events
+  useEffect(() => {
+    const handleNotification = (event: any) => {
+      addNotification(event.detail.type, event.detail.message);
+    };
+
+    window.addEventListener("addNotification", handleNotification);
+    return () =>
+      window.removeEventListener("addNotification", handleNotification);
+  }, []);
 
   // Dynamic navigation items with real-time badges
   const navigationItems = [
