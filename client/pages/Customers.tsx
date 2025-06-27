@@ -1,0 +1,486 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Search,
+  Users,
+  Phone,
+  Mail,
+  MapPin,
+  MoreHorizontal,
+  Eye,
+  Edit,
+  Trash2,
+  ShoppingBag,
+  Package,
+  Star,
+  Calendar,
+} from "lucide-react";
+import { Customer, Order } from "@shared/types";
+import { Navigation } from "@/components/layout/Navigation";
+import { CustomerForm } from "@/components/customers/CustomerForm";
+import { CustomerHistory } from "@/components/customers/CustomerHistory";
+import { BulkOrderForm } from "@/components/customers/BulkOrderForm";
+
+export default function Customers() {
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showBulkOrder, setShowBulkOrder] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/customers");
+      const data = await response.json();
+      setCustomers(data.data || []);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      // Set mock data for development
+      setCustomers([
+        {
+          id: "1",
+          name: "John Smith",
+          email: "john@example.com",
+          phone: "+1-555-0123",
+          address: {
+            street: "123 Main St",
+            city: "New York",
+            state: "NY",
+            zipCode: "10001",
+            country: "USA",
+          },
+          totalOrders: 8,
+          totalSpent: 1245.67,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          preferredContactMethod: "email",
+        },
+        {
+          id: "2",
+          name: "Jane Doe",
+          email: "jane@example.com",
+          phone: "+1-555-0124",
+          address: {
+            street: "456 Oak Ave",
+            city: "Los Angeles",
+            state: "CA",
+            zipCode: "90210",
+            country: "USA",
+          },
+          totalOrders: 3,
+          totalSpent: 789.45,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          preferredContactMethod: "phone",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCustomer = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this customer?")) return;
+
+    try {
+      await fetch(`/api/customers/${id}`, { method: "DELETE" });
+      setCustomers(customers.filter((c) => c.id !== id));
+    } catch (error) {
+      console.error("Error deleting customer:", error);
+    }
+  };
+
+  const filteredCustomers = customers.filter((customer) => {
+    const matchesSearch =
+      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.phone.includes(searchTerm);
+
+    switch (activeTab) {
+      case "vip":
+        return matchesSearch && customer.totalSpent > 1000;
+      case "new":
+        return matchesSearch && customer.totalOrders <= 1;
+      case "active":
+        return matchesSearch && customer.totalOrders > 5;
+      default:
+        return matchesSearch;
+    }
+  });
+
+  const getCustomerStats = () => {
+    return {
+      total: customers.length,
+      vip: customers.filter((c) => c.totalSpent > 1000).length,
+      new: customers.filter((c) => c.totalOrders <= 1).length,
+      active: customers.filter((c) => c.totalOrders > 5).length,
+      totalRevenue: customers.reduce((sum, c) => sum + c.totalSpent, 0),
+    };
+  };
+
+  const stats = getCustomerStats();
+
+  const showCustomerHistory = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowHistory(true);
+  };
+
+  const showBulkOrderDialog = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowBulkOrder(true);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <Navigation />
+
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Customers</h1>
+            <p className="text-slate-600">
+              Manage customer relationships and order history
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowBulkOrder(true)}>
+              <Package className="h-4 w-4 mr-2" />
+              Bulk Order
+            </Button>
+            <Dialog open={showCustomerForm} onOpenChange={setShowCustomerForm}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Customer
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Add New Customer</DialogTitle>
+                </DialogHeader>
+                <CustomerForm
+                  onSubmit={async (data) => {
+                    try {
+                      const response = await fetch("/api/customers", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data),
+                      });
+                      const result = await response.json();
+                      setCustomers([...customers, result.data]);
+                      setShowCustomerForm(false);
+                    } catch (error) {
+                      console.error("Error creating customer:", error);
+                    }
+                  }}
+                  onCancel={() => setShowCustomerForm(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">
+                    Total Customers
+                  </p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                </div>
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">
+                    VIP Customers
+                  </p>
+                  <p className="text-2xl font-bold text-accent">{stats.vip}</p>
+                </div>
+                <Star className="h-8 w-8 text-accent" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">
+                    New Customers
+                  </p>
+                  <p className="text-2xl font-bold text-primary">{stats.new}</p>
+                </div>
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">
+                    Active Customers
+                  </p>
+                  <p className="text-2xl font-bold text-warning">
+                    {stats.active}
+                  </p>
+                </div>
+                <ShoppingBag className="h-8 w-8 text-warning" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">
+                    Total Revenue
+                  </p>
+                  <p className="text-2xl font-bold">
+                    ${stats.totalRevenue.toLocaleString()}
+                  </p>
+                </div>
+                <ShoppingBag className="h-8 w-8 text-accent" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search and Filters */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search customers by name, email, or phone..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Customer Tabs */}
+        <Card>
+          <CardHeader>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="all">All Customers</TabsTrigger>
+                <TabsTrigger value="vip">VIP ($1000+)</TabsTrigger>
+                <TabsTrigger value="new">New Customers</TabsTrigger>
+                <TabsTrigger value="active">Active (5+ Orders)</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8">Loading customers...</div>
+            ) : (
+              <div className="space-y-4">
+                {filteredCustomers.map((customer) => (
+                  <Card
+                    key={customer.id}
+                    className="hover:shadow-md transition-shadow"
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                            <Users className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-slate-900">
+                                {customer.name}
+                              </h3>
+                              {customer.totalSpent > 1000 && (
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-accent/20 text-accent"
+                                >
+                                  <Star className="h-3 w-3 mr-1" />
+                                  VIP
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4 mt-1">
+                              <div className="flex items-center gap-1 text-sm text-slate-600">
+                                <Mail className="h-3 w-3" />
+                                {customer.email}
+                              </div>
+                              <div className="flex items-center gap-1 text-sm text-slate-600">
+                                <Phone className="h-3 w-3" />
+                                {customer.phone}
+                              </div>
+                              <div className="flex items-center gap-1 text-sm text-slate-600">
+                                <MapPin className="h-3 w-3" />
+                                {customer.address.city},{" "}
+                                {customer.address.state}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-6">
+                          <div className="text-center">
+                            <p className="text-sm text-slate-600">Orders</p>
+                            <p className="font-semibold">
+                              {customer.totalOrders}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm text-slate-600">
+                              Total Spent
+                            </p>
+                            <p className="font-semibold text-accent">
+                              ${customer.totalSpent.toLocaleString()}
+                            </p>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => showCustomerHistory(customer)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              History
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => showBulkOrderDialog(customer)}
+                            >
+                              <Package className="h-4 w-4 mr-1" />
+                              Bulk Order
+                            </Button>
+                          </div>
+
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedCustomer(customer);
+                                  setShowCustomerForm(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Customer
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => showCustomerHistory(customer)}
+                              >
+                                <Calendar className="h-4 w-4 mr-2" />
+                                View History
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleDeleteCustomer(customer.id)
+                                }
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Customer History Dialog */}
+        {selectedCustomer && (
+          <CustomerHistory
+            open={showHistory}
+            onOpenChange={setShowHistory}
+            customer={selectedCustomer}
+          />
+        )}
+
+        {/* Bulk Order Dialog */}
+        {selectedCustomer && (
+          <BulkOrderForm
+            open={showBulkOrder}
+            onOpenChange={setShowBulkOrder}
+            customer={selectedCustomer}
+            onSubmit={async (orderData) => {
+              try {
+                const response = await fetch("/api/orders/bulk", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(orderData),
+                });
+                const result = await response.json();
+                setShowBulkOrder(false);
+                // Refresh customer data to update totals
+                fetchCustomers();
+              } catch (error) {
+                console.error("Error creating bulk order:", error);
+              }
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
