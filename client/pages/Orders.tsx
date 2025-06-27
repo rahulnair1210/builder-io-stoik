@@ -42,6 +42,7 @@ import { FilterOptions } from "@shared/types";
 import { Navigation } from "@/components/layout/Navigation";
 import { OrderDetailsDialog } from "@/components/orders/OrderDetailsDialog";
 import { EditOrderDialog } from "@/components/orders/EditOrderDialog";
+import { OrderCard } from "@/components/orders/OrderCard";
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -326,7 +327,7 @@ export default function Orders() {
           <CardContent>
             {loading ? (
               <div className="text-center py-8">Loading orders...</div>
-            ) : (
+            ) : viewMode === "table" ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -448,6 +449,24 @@ export default function Orders() {
                   ))}
                 </TableBody>
               </Table>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {orders.map((order) => (
+                  <OrderCard
+                    key={order.id}
+                    order={order}
+                    onViewDetails={(order) => {
+                      setSelectedOrder(order);
+                      setShowOrderDetails(true);
+                    }}
+                    onEdit={(order) => {
+                      setSelectedOrder(order);
+                      setShowEditOrder(true);
+                    }}
+                    onUpdateStatus={updateOrderStatus}
+                  />
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
