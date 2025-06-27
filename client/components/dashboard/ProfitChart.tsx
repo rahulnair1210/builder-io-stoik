@@ -76,11 +76,17 @@ export function ProfitChart({ data }: ProfitChartProps) {
             tickFormatter={formatMonth}
             stroke="#64748b"
             fontSize={12}
+            axisLine={true}
+            tickLine={true}
+            type="category"
           />
           <YAxis
             tickFormatter={formatCurrency}
             stroke="#64748b"
             fontSize={12}
+            axisLine={true}
+            tickLine={true}
+            type="number"
           />
           <Tooltip
             content={({ active, payload, label }) => {
