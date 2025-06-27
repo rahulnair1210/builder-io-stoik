@@ -10,3 +10,6 @@
 export interface DemoResponse {
   message: string;
 }
+
+// Re-export all types from types.ts for convenience
+export * from "./types";
