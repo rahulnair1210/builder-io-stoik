@@ -180,7 +180,13 @@ export default function Customers() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowBulkOrder(true)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedCustomer(null);
+                setShowBulkOrder(true);
+              }}
+            >
               <Package className="h-4 w-4 mr-2" />
               Bulk Order
             </Button>
