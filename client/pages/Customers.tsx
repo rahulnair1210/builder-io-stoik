@@ -137,8 +137,6 @@ export default function Customers() {
         return matchesSearch && customer.totalSpent > 1000;
       case "new":
         return matchesSearch && customer.totalOrders <= 1;
-      case "active":
-        return matchesSearch && customer.totalOrders > 5;
       default:
         return matchesSearch;
     }
@@ -149,7 +147,6 @@ export default function Customers() {
       total: customers.length,
       vip: customers.filter((c) => c.totalSpent > 1000).length,
       new: customers.filter((c) => c.totalOrders <= 1).length,
-      active: customers.filter((c) => c.totalOrders > 5).length,
       totalRevenue: customers.reduce((sum, c) => sum + c.totalSpent, 0),
     };
   };
@@ -232,7 +229,7 @@ export default function Customers() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -277,21 +274,6 @@ export default function Customers() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">
-                    Active Customers
-                  </p>
-                  <p className="text-2xl font-bold text-warning">
-                    {stats.active}
-                  </p>
-                </div>
-                <ShoppingBag className="h-8 w-8 text-warning" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">
                     Total Revenue
                   </p>
                   <p className="text-2xl font-bold">
@@ -327,11 +309,10 @@ export default function Customers() {
         <Card>
           <CardHeader>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="all">All Customers</TabsTrigger>
                 <TabsTrigger value="vip">VIP ($1000+)</TabsTrigger>
                 <TabsTrigger value="new">New Customers</TabsTrigger>
-                <TabsTrigger value="active">Active (5+ Orders)</TabsTrigger>
               </TabsList>
             </Tabs>
           </CardHeader>
