@@ -43,6 +43,7 @@ import { Navigation } from "@/components/layout/Navigation";
 import { OrderDetailsDialog } from "@/components/orders/OrderDetailsDialog";
 import { EditOrderDialog } from "@/components/orders/EditOrderDialog";
 import { OrderCard } from "@/components/orders/OrderCard";
+import { NewOrderDialog } from "@/components/orders/NewOrderDialog";
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -51,6 +52,7 @@ export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [showEditOrder, setShowEditOrder] = useState(false);
+  const [showNewOrder, setShowNewOrder] = useState(false);
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
 
   useEffect(() => {
@@ -197,17 +199,7 @@ export default function Orders() {
               Manage customer orders and track fulfillment
             </p>
           </div>
-          <Button
-            onClick={() => {
-              // Navigate to bulk order with no customer preselected
-              window.location.href = "/customers";
-              // Add a small delay then trigger bulk order dialog
-              setTimeout(() => {
-                const event = new CustomEvent("openBulkOrder");
-                window.dispatchEvent(event);
-              }, 500);
-            }}
-          >
+          <Button onClick={() => setShowNewOrder(true)}>
             <Plus className="h-4 w-4 mr-2" />
             New Order
           </Button>
@@ -494,6 +486,13 @@ export default function Orders() {
           onOpenChange={setShowEditOrder}
           order={selectedOrder}
           onSave={handleSaveOrder}
+        />
+
+        {/* New Order Dialog */}
+        <NewOrderDialog
+          open={showNewOrder}
+          onOpenChange={setShowNewOrder}
+          onOrderCreated={fetchOrders}
         />
       </div>
     </div>
