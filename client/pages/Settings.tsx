@@ -156,11 +156,16 @@ export default function Settings() {
     // Remove all non-digits
     const digits = value.replace(/\D/g, "");
 
-    // Format as international number
-    if (digits.startsWith("1") && digits.length === 11) {
+    // Format for Indian phone numbers
+    if (digits.startsWith("91") && digits.length === 12) {
+      // +91 XXXXX XXXXX format for Indian numbers
+      return `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`;
+    } else if (digits.length === 10 && !digits.startsWith("91")) {
+      // Add +91 prefix for 10-digit Indian numbers
+      return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+    } else if (digits.startsWith("1") && digits.length === 11) {
+      // US format for backwards compatibility
       return `+1-${digits.slice(1, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`;
-    } else if (digits.length === 10) {
-      return `+1-${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
     }
 
     return value;
@@ -349,7 +354,7 @@ export default function Settings() {
                       <div className="flex gap-2">
                         <Input
                           id="whatsappNumber"
-                          placeholder="+1-555-123-4567"
+                          placeholder="+91 98765 43210"
                           value={notifications.whatsappNumber}
                           onChange={(e) => {
                             const formatted = formatPhoneNumber(e.target.value);
@@ -372,8 +377,8 @@ export default function Settings() {
                         </Button>
                       </div>
                       <p className="text-sm text-slate-600">
-                        Enter your WhatsApp number with country code (e.g., +1
-                        for US)
+                        Enter your WhatsApp number with country code (e.g., +91
+                        for India)
                       </p>
                     </div>
 

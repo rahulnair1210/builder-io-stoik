@@ -38,6 +38,22 @@ export function Navigation() {
     inventory: 0,
     customers: 0,
   });
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      type: "low_stock",
+      message: "5 products are running low on stock",
+      read: false,
+    },
+    {
+      id: 2,
+      type: "new_order",
+      message: "Order #1234 has been placed",
+      read: false,
+    },
+  ]);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // Dynamic navigation items with real-time badges
   const navigationItems = [
@@ -63,7 +79,7 @@ export function Navigation() {
       name: "Customers",
       href: "/customers",
       icon: Users,
-      badge: badges.customers > 0 ? badges.customers : null,
+      badge: null,
     },
     {
       name: "Settings",
@@ -211,29 +227,80 @@ export function Navigation() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="relative">
                 <Bell className="h-4 w-4" />
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center bg-destructive">
-                  2
-                </Badge>
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center bg-destructive">
+                    {unreadCount}
+                  </Badge>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
-              <div className="p-3 border-b">
-                <h4 className="font-medium">Notifications</h4>
-                <p className="text-sm text-slate-600">You have 2 new alerts</p>
+              <div className="p-3 border-b flex justify-between items-center">
+                <div>
+                  <h4 className="font-medium">Notifications</h4>
+                  <p className="text-sm text-slate-600">
+                    You have {unreadCount} new alerts
+                  </p>
+                </div>
+                {unreadCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setNotifications(
+                        notifications.map((n) => ({ ...n, read: true })),
+                      );
+                    }}
+                    className="text-xs"
+                  >
+                    Mark all read
+                  </Button>
+                )}
               </div>
-              <div className="p-2 space-y-2">
-                <div className="p-2 rounded-lg bg-warning/10 border border-warning/20">
-                  <p className="text-sm font-medium">Low Stock Alert</p>
-                  <p className="text-xs text-slate-600">
-                    5 products are running low on stock
-                  </p>
-                </div>
-                <div className="p-2 rounded-lg bg-accent/10 border border-accent/20">
-                  <p className="text-sm font-medium">New Order</p>
-                  <p className="text-xs text-slate-600">
-                    Order #1234 has been placed
-                  </p>
-                </div>
+              <div className="p-2 space-y-2 max-h-64 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-center text-slate-500">
+                    No notifications
+                  </div>
+                ) : (
+                  notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`p-2 rounded-lg border cursor-pointer transition-colors ${
+                        notification.read
+                          ? "bg-slate-50 border-slate-200"
+                          : notification.type === "low_stock"
+                            ? "bg-warning/10 border-warning/20"
+                            : "bg-accent/10 border-accent/20"
+                      }`}
+                      onClick={() => {
+                        setNotifications(
+                          notifications.map((n) =>
+                            n.id === notification.id ? { ...n, read: true } : n,
+                          ),
+                        );
+                      }}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <p
+                            className={`text-sm font-medium ${notification.read ? "text-slate-600" : ""}`}
+                          >
+                            {notification.type === "low_stock"
+                              ? "Low Stock Alert"
+                              : "New Order"}
+                          </p>
+                          <p className="text-xs text-slate-600">
+                            {notification.message}
+                          </p>
+                        </div>
+                        {!notification.read && (
+                          <div className="w-2 h-2 bg-primary rounded-full ml-2 mt-1"></div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </DropdownMenuContent>
           </DropdownMenu>

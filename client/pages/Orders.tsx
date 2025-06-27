@@ -197,7 +197,17 @@ export default function Orders() {
               Manage customer orders and track fulfillment
             </p>
           </div>
-          <Button>
+          <Button
+            onClick={() => {
+              // Navigate to bulk order with no customer preselected
+              window.location.href = "/customers";
+              // Add a small delay then trigger bulk order dialog
+              setTimeout(() => {
+                const event = new CustomEvent("openBulkOrder");
+                window.dispatchEvent(event);
+              }, 500);
+            }}
+          >
             <Plus className="h-4 w-4 mr-2" />
             New Order
           </Button>
