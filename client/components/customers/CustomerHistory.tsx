@@ -53,22 +53,24 @@ export function CustomerHistory({
   const fetchCustomerOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/customers/${customer.id}/orders`);
+      // Fetch all orders for this customer
+      const response = await fetch(`/api/orders?customerId=${customer.id}`);
       const data = await response.json();
       setOrders(data.data || []);
     } catch (error) {
       console.error("Error fetching customer orders:", error);
-      // Mock data for development
-      setOrders([
-        {
-          id: "ORD001",
+      // Mock data for development - ensure it matches customer data
+      const mockOrders = [];
+      for (let i = 1; i <= customer.totalOrders; i++) {
+        mockOrders.push({
+          id: `ORD${i.toString().padStart(3, "0")}`,
           customerId: customer.id,
           customer,
           items: [
             {
-              id: "1",
+              id: `${i}`,
               tshirtId: "1",
-              quantity: 2,
+              quantity: Math.floor(Math.random() * 3) + 1,
               unitCost: 8.5,
               unitSelling: 19.99,
               totalCost: 17.0,
@@ -76,60 +78,42 @@ export function CustomerHistory({
               profit: 22.98,
             },
           ],
-          status: "delivered",
+          status:
+            i <= 2
+              ? ("pending" as const)
+              : (["delivered", "processing", "shipped"][
+                  Math.floor(Math.random() * 3)
+                ] as const),
           totalCost: 17.0,
           totalSelling: 39.98,
           profit: 22.98,
           orderDate: new Date(
-            Date.now() - 30 * 24 * 60 * 60 * 1000,
+            Date.now() - i * 10 * 24 * 60 * 60 * 1000,
           ).toISOString(),
-          deliveryDate: new Date(
-            Date.now() - 28 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
+          deliveryDate:
+            i > 2
+              ? new Date(
+                  Date.now() - (i - 2) * 10 * 24 * 60 * 60 * 1000,
+                ).toISOString()
+              : undefined,
+          paymentDate:
+            i > 2
+              ? new Date(
+                  Date.now() - (i - 1) * 10 * 24 * 60 * 60 * 1000,
+                ).toISOString()
+              : undefined,
           shippingAddress: customer.address,
           paymentMethod: "card",
-          paymentStatus: "paid",
+          paymentStatus: i <= 1 ? ("pending" as const) : ("paid" as const),
           createdAt: new Date(
-            Date.now() - 30 * 24 * 60 * 60 * 1000,
+            Date.now() - i * 10 * 24 * 60 * 60 * 1000,
           ).toISOString(),
           updatedAt: new Date(
-            Date.now() - 28 * 24 * 60 * 60 * 1000,
+            Date.now() - i * 10 * 24 * 60 * 60 * 1000,
           ).toISOString(),
-        },
-        {
-          id: "ORD002",
-          customerId: customer.id,
-          customer,
-          items: [
-            {
-              id: "2",
-              tshirtId: "2",
-              quantity: 1,
-              unitCost: 12.0,
-              unitSelling: 24.99,
-              totalCost: 12.0,
-              totalSelling: 24.99,
-              profit: 12.99,
-            },
-          ],
-          status: "processing",
-          totalCost: 12.0,
-          totalSelling: 24.99,
-          profit: 12.99,
-          orderDate: new Date(
-            Date.now() - 5 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          shippingAddress: customer.address,
-          paymentMethod: "paypal",
-          paymentStatus: "paid",
-          createdAt: new Date(
-            Date.now() - 5 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          updatedAt: new Date(
-            Date.now() - 5 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-      ]);
+        });
+      }
+      setOrders(mockOrders);
     } finally {
       setLoading(false);
     }
@@ -187,8 +171,17 @@ export function CustomerHistory({
   };
 
   const getOrderStats = () => {
+    const pendingOrders = orders.filter(
+      (order) => order.status === "pending" || order.status === "processing",
+    );
+    const completedOrders = orders.filter(
+      (order) => order.status === "delivered",
+    );
+
     return {
       totalOrders: orders.length,
+      pendingOrders: pendingOrders.length,
+      completedOrders: completedOrders.length,
       totalSpent: orders.reduce((sum, order) => sum + order.totalSelling, 0),
       averageOrder:
         orders.length > 0
@@ -235,13 +228,22 @@ export function CustomerHistory({
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="text-center p-3 bg-slate-50 rounded-lg">
                   <div className="flex items-center justify-center mb-2">
                     <ShoppingBag className="h-5 w-5 text-primary" />
                   </div>
                   <p className="text-sm text-slate-600">Total Orders</p>
                   <p className="text-xl font-bold">{stats.totalOrders}</p>
+                </div>
+                <div className="text-center p-3 bg-warning/10 rounded-lg">
+                  <div className="flex items-center justify-center mb-2">
+                    <Clock className="h-5 w-5 text-warning" />
+                  </div>
+                  <p className="text-sm text-slate-600">Pending Orders</p>
+                  <p className="text-xl font-bold text-warning">
+                    {stats.pendingOrders}
+                  </p>
                 </div>
                 <div className="text-center p-3 bg-slate-50 rounded-lg">
                   <div className="flex items-center justify-center mb-2">
@@ -291,7 +293,8 @@ export function CustomerHistory({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Order ID</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>Order Date</TableHead>
+                    <TableHead>Payment Date</TableHead>
                     <TableHead>Items</TableHead>
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
@@ -306,6 +309,15 @@ export function CustomerHistory({
                         <span className="font-medium">#{order.id}</span>
                       </TableCell>
                       <TableCell>{formatDate(order.orderDate)}</TableCell>
+                      <TableCell>
+                        {order.paymentDate ? (
+                          <span className="text-slate-600">
+                            {formatDate(order.paymentDate)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <span className="text-slate-600">
                           {order.items.length} items
