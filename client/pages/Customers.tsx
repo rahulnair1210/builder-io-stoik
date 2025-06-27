@@ -204,13 +204,21 @@ export default function Customers() {
                         body: JSON.stringify(data),
                       });
                       const result = await response.json();
-                      setCustomers([...customers, result.data]);
-                      setShowCustomerForm(false);
+                      if (result.success) {
+                        setCustomers([...customers, result.data]);
+                        setShowCustomerForm(false);
+                        setSelectedCustomer(null);
+                        // Refresh data to ensure consistency
+                        await fetchCustomers();
+                      }
                     } catch (error) {
                       console.error("Error creating customer:", error);
                     }
                   }}
-                  onCancel={() => setShowCustomerForm(false)}
+                  onCancel={() => {
+                    setShowCustomerForm(false);
+                    setSelectedCustomer(null);
+                  }}
                 />
               </DialogContent>
             </Dialog>
@@ -458,28 +466,34 @@ export default function Customers() {
         )}
 
         {/* Bulk Order Dialog */}
-        {selectedCustomer && (
-          <BulkOrderForm
-            open={showBulkOrder}
-            onOpenChange={setShowBulkOrder}
-            customer={selectedCustomer}
-            onSubmit={async (orderData) => {
-              try {
-                const response = await fetch("/api/orders/bulk", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(orderData),
-                });
-                const result = await response.json();
+        <BulkOrderForm
+          open={showBulkOrder}
+          onOpenChange={(open) => {
+            setShowBulkOrder(open);
+            if (!open) {
+              setSelectedCustomer(null);
+            }
+          }}
+          customer={selectedCustomer}
+          onSubmit={async (orderData) => {
+            try {
+              const response = await fetch("/api/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(orderData),
+              });
+              const result = await response.json();
+              if (result.success) {
                 setShowBulkOrder(false);
+                setSelectedCustomer(null);
                 // Refresh customer data to update totals
-                fetchCustomers();
-              } catch (error) {
-                console.error("Error creating bulk order:", error);
+                await fetchCustomers();
               }
-            }}
-          />
-        )}
+            } catch (error) {
+              console.error("Error creating bulk order:", error);
+            }
+          }}
+        />
       </div>
     </div>
   );
