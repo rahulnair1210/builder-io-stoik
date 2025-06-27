@@ -30,40 +30,6 @@ import {
   Shirt,
 } from "lucide-react";
 
-// Dynamic navigation items with real-time badges
-const navigationItems = [
-  {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: BarChart3,
-    badge: null,
-  },
-  {
-    name: "Inventory",
-    href: "/inventory",
-    icon: Package,
-    badge: badges.inventory > 0 ? badges.inventory : null,
-  },
-  {
-    name: "Orders",
-    href: "/orders",
-    icon: ShoppingCart,
-    badge: badges.orders > 0 ? badges.orders : null,
-  },
-  {
-    name: "Customers",
-    href: "/customers",
-    icon: Users,
-    badge: badges.customers > 0 ? badges.customers : null,
-  },
-  {
-    name: "Settings",
-    href: "/settings",
-    icon: Settings,
-    badge: null,
-  },
-];
-
 export function Navigation() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -72,6 +38,40 @@ export function Navigation() {
     inventory: 0,
     customers: 0,
   });
+
+  // Dynamic navigation items with real-time badges
+  const navigationItems = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: BarChart3,
+      badge: null,
+    },
+    {
+      name: "Inventory",
+      href: "/inventory",
+      icon: Package,
+      badge: badges.inventory > 0 ? badges.inventory : null,
+    },
+    {
+      name: "Orders",
+      href: "/orders",
+      icon: ShoppingCart,
+      badge: badges.orders > 0 ? badges.orders : null,
+    },
+    {
+      name: "Customers",
+      href: "/customers",
+      icon: Users,
+      badge: badges.customers > 0 ? badges.customers : null,
+    },
+    {
+      name: "Settings",
+      href: "/settings",
+      icon: Settings,
+      badge: null,
+    },
+  ];
 
   // Fetch badge counts on component mount and periodically
   useEffect(() => {
