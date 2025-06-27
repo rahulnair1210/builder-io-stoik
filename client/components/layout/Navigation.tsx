@@ -79,30 +79,56 @@ export function Navigation() {
       try {
         // Fetch pending orders count
         const ordersResponse = await fetch("/api/orders?status=pending");
-        const ordersData = await ordersResponse.json();
+        let ordersCount = 0;
+        if (ordersResponse.ok) {
+          const ordersData = await ordersResponse.json();
+          ordersCount = ordersData.data?.length || 0;
+        }
 
         // Fetch low stock items count
         const inventoryResponse = await fetch(
           "/api/inventory?stockStatus=low_stock",
         );
-        const inventoryData = await inventoryResponse.json();
+        let inventoryCount = 0;
+        if (inventoryResponse.ok) {
+          const inventoryData = await inventoryResponse.json();
+          inventoryCount = inventoryData.data?.length || 0;
+        }
 
-        // Fetch customers with pending deliveries
-        const customersResponse = await fetch(
-          "/api/customers/pending-deliveries",
-        );
-        const customersData = await customersResponse.json();
+        // Fetch customers with pending deliveries (with fallback)
+        let customersCount = 0;
+        try {
+          const customersResponse = await fetch(
+            "/api/customers/pending-deliveries",
+          );
+          if (customersResponse.ok) {
+            const customersData = await customersResponse.json();
+            customersCount = customersData.data?.length || 0;
+          }
+        } catch (customerError) {
+          // Fallback: just set customers count to 0 if endpoint fails
+          console.warn(
+            "Could not fetch customer pending deliveries:",
+            customerError,
+          );
+          customersCount = 0;
+        }
 
         setBadges({
-          orders: ordersData.data?.length || 0,
-          inventory: inventoryData.data?.length || 0,
-          customers: customersData.data?.length || 0,
+          orders: ordersCount,
+          inventory: inventoryCount,
+          customers: customersCount,
         });
       } catch (error) {
         console.error("Error fetching badge counts:", error);
+        // Set default values on error
+        setBadges({
+          orders: 0,
+          inventory: 0,
+          customers: 0,
+        });
       }
     };
-
     fetchBadgeCounts();
 
     // Refresh every 30 seconds
