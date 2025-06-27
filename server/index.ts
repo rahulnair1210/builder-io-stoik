@@ -66,12 +66,12 @@ export function createServer() {
 
   // Customer routes
   app.get("/api/customers", getAllCustomers);
+  app.get("/api/customers/pending-deliveries", getPendingDeliveries); // Specific route before parameterized
   app.get("/api/customers/:id", getCustomerById);
   app.post("/api/customers", createCustomer);
   app.put("/api/customers/:id", updateCustomer);
   app.delete("/api/customers/:id", deleteCustomer);
   app.get("/api/customers/:id/orders", getCustomerOrders);
-  app.get("/api/customers/pending-deliveries", getPendingDeliveries);
 
   // Settings routes
   app.get("/api/settings", getSettings);
