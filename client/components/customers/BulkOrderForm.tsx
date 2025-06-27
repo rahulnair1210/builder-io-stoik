@@ -44,7 +44,9 @@ export function BulkOrderForm({
 }: BulkOrderFormProps) {
   const [products, setProducts] = useState<TShirt[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(customer);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    customer,
+  );
   const [orderItems, setOrderItems] = useState<BulkOrderItem[]>([
     { tshirtId: "", quantity: 1 },
   ]);
@@ -165,9 +167,13 @@ export function BulkOrderForm({
       if (!item.tshirt) continue;
 
       if (item.tshirt.stockLevel === 0) {
-        stockErrors.push(`${item.tshirt.name} (${item.tshirt.size} ${item.tshirt.color}) is out of stock`);
+        stockErrors.push(
+          `${item.tshirt.name} (${item.tshirt.size} ${item.tshirt.color}) is out of stock`,
+        );
       } else if (item.quantity > item.tshirt.stockLevel) {
-        stockErrors.push(`Only ${item.tshirt.stockLevel} units of ${item.tshirt.name} (${item.tshirt.size} ${item.tshirt.color}) available, but ${item.quantity} requested`);
+        stockErrors.push(
+          `Only ${item.tshirt.stockLevel} units of ${item.tshirt.name} (${item.tshirt.size} ${item.tshirt.color}) available, but ${item.quantity} requested`,
+        );
       }
     }
 
@@ -273,12 +279,18 @@ export function BulkOrderForm({
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-medium">{selectedCustomer.name}</h3>
-                      <p className="text-sm text-slate-600">{selectedCustomer.email}</p>
-                      <p className="text-sm text-slate-600">{selectedCustomer.phone}</p>
+                      <p className="text-sm text-slate-600">
+                        {selectedCustomer.email}
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        {selectedCustomer.phone}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-slate-600">Previous Orders</p>
-                      <p className="font-medium">{selectedCustomer.totalOrders}</p>
+                      <p className="font-medium">
+                        {selectedCustomer.totalOrders}
+                      </p>
                       <p className="text-sm text-accent">
                         ${selectedCustomer.totalSpent.toLocaleString()} spent
                       </p>
@@ -333,13 +345,13 @@ export function BulkOrderForm({
                                       : "destructive"
                                   }
                                 >
-                                  {product.stockLevel === 0 ? "Out of Stock" : `${product.stockLevel} in stock`}
+                                  {product.stockLevel === 0
+                                    ? "Out of Stock"
+                                    : `${product.stockLevel} in stock`}
                                 </Badge>
                               </div>
                             </SelectItem>
                           ))}
-                        </SelectContent>
-                      </Select>
                         </SelectContent>
                       </Select>
                     </div>
@@ -349,16 +361,29 @@ export function BulkOrderForm({
                       <Input
                         type="number"
                         min="1"
-                        max={item.tshirt?.stockLevel || 999}
+                        max={item.tshirt?.stockLevel || 0}
                         value={item.quantity}
-                        onChange={(e) =>
-                          handleItemChange(
-                            index,
-                            "quantity",
-                            parseInt(e.target.value) || 1,
-                          )
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 1;
+                          const maxStock = item.tshirt?.stockLevel || 0;
+                          if (value > maxStock) {
+                            alert(`Only ${maxStock} units available in stock`);
+                            return;
+                          }
+                          handleItemChange(index, "quantity", value);
+                        }}
+                        className={
+                          item.tshirt && item.tshirt.stockLevel === 0
+                            ? "border-destructive bg-destructive/10"
+                            : ""
                         }
+                        disabled={item.tshirt && item.tshirt.stockLevel === 0}
                       />
+                      {item.tshirt && item.tshirt.stockLevel === 0 && (
+                        <p className="text-xs text-destructive mt-1">
+                          Out of stock
+                        </p>
+                      )}
                     </div>
 
                     {item.tshirt && (
