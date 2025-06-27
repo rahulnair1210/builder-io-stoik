@@ -121,7 +121,7 @@ export function Navigation() {
           </div>
           <div>
             <h1 className="text-lg font-bold text-slate-900">
-              T-Shirt Manager
+              Stoik
             </h1>
             <p className="text-xs text-slate-600 -mt-1">Inventory System</p>
           </div>
