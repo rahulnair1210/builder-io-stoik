@@ -327,3 +327,26 @@ export const getCustomerOrders: RequestHandler = (req, res) => {
     });
   }
 };
+
+export const getPendingDeliveries: RequestHandler = (req, res) => {
+  try {
+    // Mock data for customers with pending deliveries
+    const pendingDeliveries = mockCustomers.filter(
+      (customer) => customer.totalOrders > 0, // Mock condition - in real app, check for shipped but not delivered orders
+    );
+
+    const response: ApiResponse<Customer[]> = {
+      data: pendingDeliveries.slice(0, 2), // Mock: 2 customers with pending deliveries
+      success: true,
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error fetching pending deliveries:", error);
+    res.status(500).json({
+      data: [],
+      success: false,
+      message: "Failed to fetch pending deliveries",
+    });
+  }
+};

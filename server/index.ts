@@ -18,6 +18,7 @@ import {
   updateCustomer,
   deleteCustomer,
   getCustomerOrders,
+  getPendingDeliveries,
 } from "./routes/customers";
 import {
   getSettings,
@@ -64,6 +65,7 @@ export function createServer() {
   app.put("/api/customers/:id", updateCustomer);
   app.delete("/api/customers/:id", deleteCustomer);
   app.get("/api/customers/:id/orders", getCustomerOrders);
+  app.get("/api/customers/pending-deliveries", getPendingDeliveries);
 
   // Settings routes
   app.get("/api/settings", getSettings);
