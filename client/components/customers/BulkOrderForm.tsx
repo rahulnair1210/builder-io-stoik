@@ -193,15 +193,17 @@ export function BulkOrderForm({
     setLoading(true);
     try {
       await onSubmit(order);
-      // Reset form
+      // Reset form on success
       setOrderItems([{ tshirtId: "", quantity: 1 }]);
       setOrderData({
         paymentMethod: "card",
         paymentStatus: "pending",
         notes: "",
       });
+      setSelectedCustomer(null);
     } catch (error) {
       console.error("Error creating bulk order:", error);
+      alert("Failed to create order. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -208,11 +208,12 @@ export default function Customers() {
                       });
                       const result = await response.json();
                       if (result.success) {
-                        setCustomers([...customers, result.data]);
                         setShowCustomerForm(false);
                         setSelectedCustomer(null);
                         // Refresh data to ensure consistency
                         await fetchCustomers();
+                      } else {
+                        alert("Failed to create customer. Please try again.");
                       }
                     } catch (error) {
                       console.error("Error creating customer:", error);
@@ -477,6 +478,26 @@ export default function Customers() {
                 setSelectedCustomer(null);
                 // Refresh customer data to update totals
                 await fetchCustomers();
+
+                // Send WhatsApp notification if enabled
+                try {
+                  await fetch("/api/notifications/order-created", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      orderId: result.data.id,
+                      customerName: selectedCustomer?.name,
+                      total: result.data.totalSelling,
+                    }),
+                  });
+                } catch (notificationError) {
+                  console.log(
+                    "Notification sending failed:",
+                    notificationError,
+                  );
+                }
+              } else {
+                alert("Failed to create order. Please try again.");
               }
             } catch (error) {
               console.error("Error creating bulk order:", error);
