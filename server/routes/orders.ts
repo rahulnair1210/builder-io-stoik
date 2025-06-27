@@ -43,6 +43,7 @@ const mockOrders: Order[] = [
     orderDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     shippingDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     deliveryDate: new Date().toISOString(),
+    paymentDate: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString(),
     shippingAddress: {
       street: "123 Main St",
       city: "New York",
@@ -93,6 +94,7 @@ const mockOrders: Order[] = [
     totalSelling: 24.99,
     profit: 12.99,
     orderDate: new Date().toISOString(),
+    paymentDate: undefined,
     shippingAddress: {
       street: "456 Oak Ave",
       city: "Los Angeles",
@@ -280,6 +282,36 @@ export const updateOrderStatus: RequestHandler = (req, res) => {
       data: null,
       success: false,
       message: "Failed to update order status",
+    });
+  }
+};
+
+export const createOrder: RequestHandler = (req, res) => {
+  try {
+    const orderData = req.body;
+    const newOrder: Order = {
+      ...orderData,
+      id: `ORD${Date.now()}`,
+      profit: orderData.totalSelling - orderData.totalCost,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    mockOrders.push(newOrder);
+
+    const response: ApiResponse<Order> = {
+      data: newOrder,
+      success: true,
+      message: "Order created successfully",
+    };
+
+    res.status(201).json(response);
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(500).json({
+      data: null,
+      success: false,
+      message: "Failed to create order",
     });
   }
 };

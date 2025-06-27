@@ -61,6 +61,7 @@ export function createServer() {
   // Orders routes
   app.get("/api/orders", getAllOrders);
   app.get("/api/orders/:id", getOrderById);
+  app.post("/api/orders", createOrder);
   app.put("/api/orders/:id", updateOrder);
   app.patch("/api/orders/:id/status", updateOrderStatus);
 

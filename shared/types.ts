@@ -51,6 +51,7 @@ export interface Order {
   orderDate: string;
   shippingDate?: string;
   deliveryDate?: string;
+  paymentDate?: string;
   shippingAddress: {
     street: string;
     city: string;
