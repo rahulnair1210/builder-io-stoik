@@ -306,7 +306,15 @@ export function BulkOrderForm({
                     <div className="flex-1">
                       <Label>Product</Label>
                       <Select
-                        <Input
+                        value={item.tshirtId}
+                        onValueChange={(value) =>
+                          handleItemChange(index, "tshirtId", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a product" />
+                        </SelectTrigger>
+                        <SelectContent>
                           {products.map((product) => (
                             <SelectItem
                               key={product.id}
@@ -330,6 +338,8 @@ export function BulkOrderForm({
                               </div>
                             </SelectItem>
                           ))}
+                        </SelectContent>
+                      </Select>
                         </SelectContent>
                       </Select>
                     </div>
