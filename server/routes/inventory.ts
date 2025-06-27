@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import { TShirt, ApiResponse, PaginatedResponse } from "@shared/types";
 
 // Mock data for development
-const mockProducts: TShirt[] = [
+export const mockProducts: TShirt[] = [
   {
     id: "1",
     name: "Classic Cotton Tee",

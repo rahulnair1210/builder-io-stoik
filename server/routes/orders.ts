@@ -310,6 +310,52 @@ export const updateOrderStatus: RequestHandler = (req, res) => {
 export const createOrder: RequestHandler = (req, res) => {
   try {
     const orderData = req.body;
+
+    // Validate stock availability before creating order
+    try {
+      const { mockProducts } = require("./inventory");
+      const stockErrors = [];
+
+      for (const item of orderData.items) {
+        const product = mockProducts.find((p: any) => p.id === item.tshirtId);
+        if (!product) {
+          stockErrors.push(`Product ${item.tshirtId} not found`);
+          continue;
+        }
+
+        if (product.stockLevel === 0) {
+          stockErrors.push(
+            `${product.name} (${product.size} ${product.color}) is out of stock`,
+          );
+        } else if (item.quantity > product.stockLevel) {
+          stockErrors.push(
+            `Only ${product.stockLevel} units of ${product.name} (${product.size} ${product.color}) available, but ${item.quantity} requested`,
+          );
+        }
+      }
+
+      if (stockErrors.length > 0) {
+        return res.status(400).json({
+          data: null,
+          success: false,
+          message: "Stock validation failed: " + stockErrors.join(", "),
+        });
+      }
+
+      // Reduce stock levels
+      for (const item of orderData.items) {
+        const productIndex = mockProducts.findIndex(
+          (p: any) => p.id === item.tshirtId,
+        );
+        if (productIndex !== -1) {
+          mockProducts[productIndex].stockLevel -= item.quantity;
+          mockProducts[productIndex].updatedAt = new Date().toISOString();
+        }
+      }
+    } catch (error) {
+      console.warn("Could not validate/update stock levels:", error);
+    }
+
     const newOrder: Order = {
       ...orderData,
       id: `ORD${Date.now()}`,
@@ -324,13 +370,6 @@ export const createOrder: RequestHandler = (req, res) => {
     };
 
     mockOrders.push(newOrder);
-
-    // Update customer totals
-    const { getAllCustomers, updateCustomer } = require("./customers");
-    // This is a mock update - in real implementation, you'd update the database
-    console.log(
-      `Order ${newOrder.id} created for customer ${newOrder.customerId}`,
-    );
 
     const response: ApiResponse<Order> = {
       data: newOrder,
