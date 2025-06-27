@@ -479,6 +479,16 @@ export default function Customers() {
                 // Refresh customer data to update totals
                 await fetchCustomers();
 
+                // Add success notification
+                window.dispatchEvent(
+                  new CustomEvent("addNotification", {
+                    detail: {
+                      type: "order_created",
+                      message: `Order #${result.data.id} created successfully for ${selectedCustomer?.name || "customer"}`,
+                    },
+                  }),
+                );
+
                 // Send WhatsApp notification if enabled
                 try {
                   await fetch("/api/notifications/order-created", {

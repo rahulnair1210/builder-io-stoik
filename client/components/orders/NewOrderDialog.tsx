@@ -34,8 +34,20 @@ export function NewOrderDialog({
           });
           const result = await response.json();
           if (result.success) {
+            // Add success notification
+            window.dispatchEvent(
+              new CustomEvent("addNotification", {
+                detail: {
+                  type: "order_created",
+                  message: `Order #${result.data.id} created successfully`,
+                },
+              }),
+            );
+
             onOrderCreated();
             onOpenChange(false);
+          } else {
+            alert("Failed to create order. Please try again.");
           }
         } catch (error) {
           console.error("Error creating order:", error);
