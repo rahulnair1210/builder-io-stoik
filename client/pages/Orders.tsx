@@ -38,8 +38,10 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import { Order, FilterOptions } from "@shared/types";
+import { FilterOptions } from "@shared/types";
 import { Navigation } from "@/components/layout/Navigation";
+import { OrderDetailsDialog } from "@/components/orders/OrderDetailsDialog";
+import { EditOrderDialog } from "@/components/orders/EditOrderDialog";
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -90,6 +92,27 @@ export default function Orders() {
       );
     } catch (error) {
       console.error("Error updating order status:", error);
+    }
+  };
+
+  const handleSaveOrder = async (orderId: string, updates: Partial<Order>) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setOrders(
+          orders.map((order) =>
+            order.id === orderId ? { ...order, ...data.data } : order,
+          ),
+        );
+      }
+    } catch (error) {
+      console.error("Error updating order:", error);
     }
   };
 
@@ -399,6 +422,21 @@ export default function Orders() {
             )}
           </CardContent>
         </Card>
+
+        {/* Order Details Dialog */}
+        <OrderDetailsDialog
+          open={showOrderDetails}
+          onOpenChange={setShowOrderDetails}
+          order={selectedOrder}
+        />
+
+        {/* Edit Order Dialog */}
+        <EditOrderDialog
+          open={showEditOrder}
+          onOpenChange={setShowEditOrder}
+          order={selectedOrder}
+          onSave={handleSaveOrder}
+        />
       </div>
     </div>
   );
