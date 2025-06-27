@@ -55,6 +55,27 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
   const [newTag, setNewTag] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Fixed input handlers to prevent typing issues
+  const handleInputChange = (field: string) => {
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    };
+  };
+
+  const handleNumberChange = (field: string) => {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value === "" ? 0 : parseFloat(e.target.value) || 0;
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    };
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -110,7 +131,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={handleInputChange("name")}
             placeholder="e.g., Classic Cotton Tee"
           />
           {errors.name && (
@@ -123,9 +144,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
           <Input
             id="design"
             value={formData.design}
-            onChange={(e) =>
-              setFormData({ ...formData, design: e.target.value })
-            }
+            onChange={handleInputChange("design")}
             placeholder="e.g., Vintage Logo"
           />
           {errors.design && (
@@ -212,9 +231,7 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
             type="number"
             min="0"
             value={formData.stockLevel}
-            onChange={(e) =>
-              setFormData({ ...formData, stockLevel: parseInt(e.target.value) })
-            }
+            onChange={handleNumberChange("stockLevel")}
           />
           {errors.stockLevel && (
             <p className="text-sm text-destructive">{errors.stockLevel}</p>
