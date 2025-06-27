@@ -1,0 +1,391 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Eye,
+  Edit,
+  Truck,
+  Package,
+  DollarSign,
+  ShoppingCart,
+  Clock,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { Order, FilterOptions } from "@shared/types";
+import { Navigation } from "@/components/layout/Navigation";
+
+export default function Orders() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<FilterOptions>({});
+
+  useEffect(() => {
+    fetchOrders();
+  }, [filters]);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const queryParams = new URLSearchParams();
+
+      if (filters.search) queryParams.append("search", filters.search);
+
+      const response = await fetch(`/api/orders?${queryParams}`);
+      const data = await response.json();
+      setOrders(data.data);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateOrderStatus = async (
+    orderId: string,
+    newStatus: Order["status"],
+  ) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const data = await response.json();
+
+      setOrders(
+        orders.map((order) =>
+          order.id === orderId ? { ...order, ...data.data } : order,
+        ),
+      );
+    } catch (error) {
+      console.error("Error updating order status:", error);
+    }
+  };
+
+  const getStatusBadge = (status: Order["status"]) => {
+    const variants = {
+      pending: {
+        variant: "secondary" as const,
+        className: "bg-warning/20 text-warning",
+        icon: Clock,
+      },
+      processing: {
+        variant: "default" as const,
+        className: "bg-primary/20 text-primary",
+        icon: Package,
+      },
+      shipped: {
+        variant: "outline" as const,
+        className: "bg-blue-100 text-blue-700",
+        icon: Truck,
+      },
+      delivered: {
+        variant: "secondary" as const,
+        className: "bg-accent/20 text-accent",
+        icon: CheckCircle,
+      },
+      cancelled: {
+        variant: "destructive" as const,
+        className: "bg-destructive/20 text-destructive",
+        icon: XCircle,
+      },
+    };
+
+    const { variant, className, icon: Icon } = variants[status];
+
+    return (
+      <Badge
+        variant={variant}
+        className={`${className} flex items-center gap-1`}
+      >
+        <Icon className="h-3 w-3" />
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const getOrderStats = () => {
+    const stats = {
+      total: orders.length,
+      pending: orders.filter((o) => o.status === "pending").length,
+      processing: orders.filter((o) => o.status === "processing").length,
+      shipped: orders.filter((o) => o.status === "shipped").length,
+      delivered: orders.filter((o) => o.status === "delivered").length,
+      totalRevenue: orders.reduce((sum, o) => sum + o.totalSelling, 0),
+      totalProfit: orders.reduce((sum, o) => sum + o.profit, 0),
+    };
+    return stats;
+  };
+
+  const stats = getOrderStats();
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <Navigation />
+
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Orders</h1>
+            <p className="text-slate-600">
+              Manage customer orders and track fulfillment
+            </p>
+          </div>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            New Order
+          </Button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">
+                    Total Orders
+                  </p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                </div>
+                <ShoppingCart className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Pending</p>
+                  <p className="text-2xl font-bold text-warning">
+                    {stats.pending}
+                  </p>
+                </div>
+                <Clock className="h-8 w-8 text-warning" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Revenue</p>
+                  <p className="text-2xl font-bold">
+                    ${stats.totalRevenue.toLocaleString()}
+                  </p>
+                </div>
+                <DollarSign className="h-8 w-8 text-accent" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Profit</p>
+                  <p className="text-2xl font-bold text-accent">
+                    ${stats.totalProfit.toLocaleString()}
+                  </p>
+                </div>
+                <DollarSign className="h-8 w-8 text-accent" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search orders..."
+                    className="pl-10"
+                    value={filters.search || ""}
+                    onChange={(e) =>
+                      setFilters({ ...filters, search: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+              <Select
+                defaultValue="all"
+                onValueChange={(value) =>
+                  setFilters({
+                    ...filters,
+                    // Add status filter logic here when needed
+                  })
+                }
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Orders Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8">Loading orders...</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Items</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Profit</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell>
+                        <span className="font-medium">#{order.id}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{order.customer?.name}</p>
+                          <p className="text-sm text-slate-600">
+                            {order.customer?.email}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-slate-600">
+                          {order.items.length} items
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium">
+                          ${order.totalSelling.toFixed(2)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium text-accent">
+                          +${order.profit.toFixed(2)}
+                        </span>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(order.status)}</TableCell>
+                      <TableCell>
+                        <span className="text-slate-600">
+                          {formatDate(order.orderDate)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Order
+                            </DropdownMenuItem>
+                            {order.status === "pending" && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  updateOrderStatus(order.id, "processing")
+                                }
+                              >
+                                <Package className="h-4 w-4 mr-2" />
+                                Mark Processing
+                              </DropdownMenuItem>
+                            )}
+                            {order.status === "processing" && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  updateOrderStatus(order.id, "shipped")
+                                }
+                              >
+                                <Truck className="h-4 w-4 mr-2" />
+                                Mark Shipped
+                              </DropdownMenuItem>
+                            )}
+                            {order.status === "shipped" && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  updateOrderStatus(order.id, "delivered")
+                                }
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Mark Delivered
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
