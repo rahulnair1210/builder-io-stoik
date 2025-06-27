@@ -11,6 +11,20 @@ import {
 } from "./routes/inventory";
 import { getDashboardStats } from "./routes/analytics";
 import { getAllOrders, getOrderById, updateOrderStatus } from "./routes/orders";
+import {
+  getAllCustomers,
+  getCustomerById,
+  createCustomer,
+  updateCustomer,
+  deleteCustomer,
+  getCustomerOrders,
+} from "./routes/customers";
+import {
+  getSettings,
+  updateSettings,
+  testWhatsAppNotification,
+  sendLowStockNotification,
+} from "./routes/settings";
 
 export function createServer() {
   const app = express();
@@ -42,6 +56,20 @@ export function createServer() {
   app.get("/api/orders", getAllOrders);
   app.get("/api/orders/:id", getOrderById);
   app.patch("/api/orders/:id/status", updateOrderStatus);
+
+  // Customer routes
+  app.get("/api/customers", getAllCustomers);
+  app.get("/api/customers/:id", getCustomerById);
+  app.post("/api/customers", createCustomer);
+  app.put("/api/customers/:id", updateCustomer);
+  app.delete("/api/customers/:id", deleteCustomer);
+  app.get("/api/customers/:id/orders", getCustomerOrders);
+
+  // Settings routes
+  app.get("/api/settings", getSettings);
+  app.post("/api/settings", updateSettings);
+  app.post("/api/notifications/test-whatsapp", testWhatsAppNotification);
+  app.post("/api/notifications/low-stock", sendLowStockNotification);
 
   // Export placeholder routes
   app.post("/api/export/:type", (_req, res) => {
