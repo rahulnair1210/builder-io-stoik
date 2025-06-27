@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Orders from "./pages/Orders";
+import BulkOrders from "./pages/BulkOrders";
 import Customers from "./pages/Customers";
 import Photos from "./pages/Photos";
 import Settings from "./pages/Settings";
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/bulk-orders" element={<BulkOrders />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/photos" element={<Photos />} />
           <Route path="/settings" element={<Settings />} />
