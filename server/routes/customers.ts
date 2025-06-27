@@ -1,13 +1,28 @@
 import { RequestHandler } from "express";
 import { Customer, ApiResponse, PaginatedResponse } from "@shared/types";
 
+// Helper function to calculate customer totals from orders
+const calculateCustomerTotals = (customerId: string) => {
+  const { mockOrders } = require("./orders");
+  const customerOrders = mockOrders.filter(
+    (order: any) => order.customerId === customerId,
+  );
+  return {
+    totalOrders: customerOrders.length,
+    totalSpent: customerOrders.reduce(
+      (sum: number, order: any) => sum + order.totalSelling,
+      0,
+    ),
+  };
+};
+
 // Mock data for customers
-const mockCustomers: Customer[] = [
+let mockCustomers: Customer[] = [
   {
     id: "1",
     name: "John Smith",
     email: "john@example.com",
-    phone: "+1-555-0123",
+    phone: "+91 98765 43210",
     address: {
       street: "123 Main St",
       city: "New York",
@@ -15,8 +30,8 @@ const mockCustomers: Customer[] = [
       zipCode: "10001",
       country: "USA",
     },
-    totalOrders: 8,
-    totalSpent: 1245.67,
+    totalOrders: 0, // Will be calculated dynamically
+    totalSpent: 0, // Will be calculated dynamically
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     preferredContactMethod: "email",
@@ -25,7 +40,7 @@ const mockCustomers: Customer[] = [
     id: "2",
     name: "Jane Doe",
     email: "jane@example.com",
-    phone: "+1-555-0124",
+    phone: "+91 87654 32109",
     address: {
       street: "456 Oak Ave",
       city: "Los Angeles",
@@ -33,8 +48,8 @@ const mockCustomers: Customer[] = [
       zipCode: "90210",
       country: "USA",
     },
-    totalOrders: 3,
-    totalSpent: 789.45,
+    totalOrders: 0, // Will be calculated dynamically
+    totalSpent: 0, // Will be calculated dynamically
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     preferredContactMethod: "phone",
@@ -43,7 +58,7 @@ const mockCustomers: Customer[] = [
     id: "3",
     name: "Bob Johnson",
     email: "bob@example.com",
-    phone: "+1-555-0125",
+    phone: "+91 76543 21098",
     address: {
       street: "789 Pine St",
       city: "Chicago",
@@ -51,8 +66,8 @@ const mockCustomers: Customer[] = [
       zipCode: "60601",
       country: "USA",
     },
-    totalOrders: 12,
-    totalSpent: 2156.89,
+    totalOrders: 0, // Will be calculated dynamically
+    totalSpent: 0, // Will be calculated dynamically
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     preferredContactMethod: "email",
@@ -69,7 +84,20 @@ export const getAllCustomers: RequestHandler = (req, res) => {
       limit = "50",
     } = req.query;
 
-    let filteredCustomers = [...mockCustomers];
+    // Update customer totals from orders before filtering
+    let filteredCustomers = mockCustomers.map((customer) => {
+      try {
+        const totals = calculateCustomerTotals(customer.id);
+        return {
+          ...customer,
+          totalOrders: totals.totalOrders,
+          totalSpent: totals.totalSpent,
+        };
+      } catch (error) {
+        // If orders calculation fails, return customer as is
+        return customer;
+      }
+    });
 
     // Apply search filter
     if (search) {
