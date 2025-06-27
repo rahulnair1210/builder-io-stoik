@@ -142,3 +142,42 @@ export const sendLowStockNotification: RequestHandler = (req, res) => {
     });
   }
 };
+
+export const sendOrderCreatedNotification: RequestHandler = (req, res) => {
+  try {
+    const { orderId, customerName, total } = req.body;
+
+    // Check if WhatsApp notifications are enabled
+    if (
+      settingsData.notifications.whatsappEnabled &&
+      settingsData.notifications.whatsappNumber
+    ) {
+      // Format message for new order
+      const message =
+        `🎉 NEW ORDER RECEIVED!\n\n` +
+        `Order ID: #${orderId}\n` +
+        `Customer: ${customerName}\n` +
+        `Amount: ₹${total}\n\n` +
+        `Thank you for your business!`;
+
+      console.log(
+        `Would send WhatsApp to ${settingsData.notifications.whatsappNumber}: ${message}`,
+      );
+    }
+
+    const response: ApiResponse<{ sent: boolean }> = {
+      data: { sent: true },
+      success: true,
+      message: "Order notification sent",
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error sending order notification:", error);
+    res.status(500).json({
+      data: { sent: false },
+      success: false,
+      message: "Failed to send order notification",
+    });
+  }
+};

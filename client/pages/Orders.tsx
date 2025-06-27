@@ -89,13 +89,28 @@ export default function Orders() {
       });
       const data = await response.json();
 
-      setOrders(
-        orders.map((order) =>
-          order.id === orderId ? { ...order, ...data.data } : order,
-        ),
-      );
+      if (data.success) {
+        setOrders(
+          orders.map((order) =>
+            order.id === orderId ? { ...order, ...data.data } : order,
+          ),
+        );
+
+        // Add notification for status update
+        window.dispatchEvent(
+          new CustomEvent("addNotification", {
+            detail: {
+              type: "order_status",
+              message: `Order #${orderId} status changed to ${newStatus}`,
+            },
+          }),
+        );
+      } else {
+        alert("Failed to update order status. Please try again.");
+      }
     } catch (error) {
       console.error("Error updating order status:", error);
+      alert("Failed to update order status. Please try again.");
     }
   };
 
@@ -109,14 +124,28 @@ export default function Orders() {
       const data = await response.json();
 
       if (data.success) {
+        // Update the local state
         setOrders(
           orders.map((order) =>
             order.id === orderId ? { ...order, ...data.data } : order,
           ),
         );
+
+        // Add notification for successful update
+        window.dispatchEvent(
+          new CustomEvent("addNotification", {
+            detail: {
+              type: "order_update",
+              message: `Order #${orderId} has been updated successfully`,
+            },
+          }),
+        );
+      } else {
+        alert("Failed to update order. Please try again.");
       }
     } catch (error) {
       console.error("Error updating order:", error);
+      alert("Failed to update order. Please try again.");
     }
   };
 

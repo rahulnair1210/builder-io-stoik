@@ -31,6 +31,7 @@ import {
   updateSettings,
   testWhatsAppNotification,
   sendLowStockNotification,
+  sendOrderCreatedNotification,
 } from "./routes/settings";
 
 export function createServer() {
@@ -80,6 +81,7 @@ export function createServer() {
   app.post("/api/settings", updateSettings);
   app.post("/api/notifications/test-whatsapp", testWhatsAppNotification);
   app.post("/api/notifications/low-stock", sendLowStockNotification);
+  app.post("/api/notifications/order-created", sendOrderCreatedNotification);
 
   // Export placeholder routes
   app.post("/api/export/:type", (_req, res) => {
