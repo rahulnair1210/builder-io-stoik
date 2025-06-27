@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import { Order, ApiResponse, PaginatedResponse } from "@shared/types";
 
 // Mock data for orders
-const mockOrders: Order[] = [
+export const mockOrders: Order[] = [
   {
     id: "ORD001",
     customerId: "1",

@@ -3,17 +3,24 @@ import { Customer, ApiResponse, PaginatedResponse } from "@shared/types";
 
 // Helper function to calculate customer totals from orders
 const calculateCustomerTotals = (customerId: string) => {
-  const { mockOrders } = require("./orders");
-  const customerOrders = mockOrders.filter(
-    (order: any) => order.customerId === customerId,
-  );
-  return {
-    totalOrders: customerOrders.length,
-    totalSpent: customerOrders.reduce(
-      (sum: number, order: any) => sum + order.totalSelling,
-      0,
-    ),
-  };
+  try {
+    const { mockOrders } = require("./orders");
+    if (!mockOrders) return { totalOrders: 0, totalSpent: 0 };
+
+    const customerOrders = mockOrders.filter(
+      (order: any) => order.customerId === customerId,
+    );
+    return {
+      totalOrders: customerOrders.length,
+      totalSpent: customerOrders.reduce(
+        (sum: number, order: any) => sum + order.totalSelling,
+        0,
+      ),
+    };
+  } catch (error) {
+    // Fallback if orders module is not available
+    return { totalOrders: 0, totalSpent: 0 };
+  }
 };
 
 // Mock data for customers
