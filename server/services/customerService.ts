@@ -35,6 +35,10 @@ export class CustomerService {
 
   async getCustomerById(id: string): Promise<Customer | null> {
     try {
+      if (!isFirebaseAvailable) {
+        return MockDataStore.getCustomerById(id);
+      }
+
       const doc = await this.collection.doc(id).get();
       if (!doc.exists) {
         return null;
