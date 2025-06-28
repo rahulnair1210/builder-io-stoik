@@ -1,11 +1,16 @@
-import { db, COLLECTIONS } from "../config/firebase";
+import { db, isFirebaseAvailable, COLLECTIONS } from "../config/firebase";
 import { Customer } from "@shared/types";
+import { MockDataStore } from "./mockDataService";
 
 export class CustomerService {
   private collection = db.collection(COLLECTIONS.CUSTOMERS);
 
   async getAllCustomers(): Promise<Customer[]> {
     try {
+      if (!isFirebaseAvailable) {
+        return MockDataStore.getCustomers();
+      }
+
       const snapshot = await this.collection.orderBy("createdAt", "desc").get();
       const customers: Customer[] = [];
 

@@ -1,4 +1,5 @@
-import { db, COLLECTIONS } from "../config/firebase";
+import { db, isFirebaseAvailable, COLLECTIONS } from "../config/firebase";
+import { MockDataStore } from "./mockDataService";
 
 interface BusinessSettings {
   businessName: string;
@@ -34,6 +35,10 @@ export class SettingsService {
 
   async getSettings(): Promise<AppSettings> {
     try {
+      if (!isFirebaseAvailable) {
+        return MockDataStore.getSettings() as AppSettings;
+      }
+
       const doc = await this.collection.doc(this.docId).get();
 
       if (!doc.exists) {
@@ -82,6 +87,10 @@ export class SettingsService {
 
   async updateSettings(settings: Partial<AppSettings>): Promise<AppSettings> {
     try {
+      if (!isFirebaseAvailable) {
+        return MockDataStore.updateSettings(settings);
+      }
+
       const updateData = {
         ...settings,
         updatedAt: new Date().toISOString(),

@@ -1,13 +1,44 @@
-import { db, COLLECTIONS } from "../config/firebase";
+import { db, isFirebaseAvailable, COLLECTIONS } from "../config/firebase";
 import { Order, OrderItem } from "@shared/types";
 import { customerService } from "./customerService";
 import { inventoryService } from "./inventoryService";
+import { MockDataStore } from "./mockDataService";
 
 export class OrderService {
   private collection = db.collection(COLLECTIONS.ORDERS);
 
   async getAllOrders(filters?: any): Promise<Order[]> {
     try {
+      if (!isFirebaseAvailable) {
+        let orders = MockDataStore.getOrders();
+
+        // Apply filters to mock data
+        if (filters?.status && filters.status !== "all") {
+          orders = orders.filter((o) => o.status === filters.status);
+        }
+
+        if (filters?.customerId) {
+          orders = orders.filter((o) => o.customerId === filters.customerId);
+        }
+
+        if (filters?.search) {
+          const searchTerm = filters.search.toLowerCase();
+          orders = orders.filter(
+            (order) =>
+              order.id.toLowerCase().includes(searchTerm) ||
+              order.customer?.name?.toLowerCase().includes(searchTerm) ||
+              order.customer?.email?.toLowerCase().includes(searchTerm),
+          );
+        }
+
+        if (filters?.minItems) {
+          const minItems = parseInt(filters.minItems);
+          orders = orders.filter((order) => order.items.length >= minItems);
+        }
+
+        return orders;
+      }
+
       let query = this.collection;
 
       // Apply filters
