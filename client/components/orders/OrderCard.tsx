@@ -95,11 +95,10 @@ export function OrderCard({
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
             <h3 className="font-semibold text-slate-900 group-hover:text-primary transition-colors">
-              Order #{order.id}
+              {order.customer?.name || "Unknown Customer"}
             </h3>
             <div className="flex items-center gap-1 text-sm text-slate-600 mt-1">
-              <User className="h-3 w-3" />
-              <span>{order.customer?.name}</span>
+              <span>Order #{order.id}</span>
             </div>
           </div>
           <DropdownMenu>
