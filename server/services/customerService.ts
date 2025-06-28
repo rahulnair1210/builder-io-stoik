@@ -89,6 +89,10 @@ export class CustomerService {
         updatedAt: new Date().toISOString(),
       };
 
+      if (!isFirebaseAvailable) {
+        return MockDataStore.updateCustomer(id, updatedData);
+      }
+
       await this.collection.doc(id).update(updatedData);
 
       const updatedDoc = await this.collection.doc(id).get();
@@ -101,6 +105,11 @@ export class CustomerService {
 
   async deleteCustomer(id: string): Promise<void> {
     try {
+      if (!isFirebaseAvailable) {
+        MockDataStore.deleteCustomer(id);
+        return;
+      }
+
       await this.collection.doc(id).delete();
     } catch (error) {
       console.error("Error deleting customer:", error);
