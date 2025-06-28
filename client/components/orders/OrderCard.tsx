@@ -234,6 +234,11 @@ export function OrderCard({
                       if (data.success) {
                         // Trigger a refresh of the parent component
                         window.location.reload();
+                      } else {
+                        console.error("Payment update failed:", data.error);
+                        alert(
+                          "Failed to update payment status. Please try again.",
+                        );
                       }
                     } catch (error) {
                       console.error("Error updating payment:", error);
