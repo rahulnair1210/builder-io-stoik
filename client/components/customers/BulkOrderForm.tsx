@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Package, Plus, Trash2, Calculator, ShoppingCart } from "lucide-react";
 import { Customer, TShirt, Order, OrderItem } from "@shared/types";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface BulkOrderFormProps {
   open: boolean;
