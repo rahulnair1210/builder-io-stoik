@@ -300,7 +300,8 @@ export class MockDataStore {
       this.orders[index] = { ...this.orders[index], ...updates };
       return this.orders[index];
     }
-    throw new Error("Order not found");
+    console.warn(`Order ${id} not found for update`);
+    return null;
   }
 
   // Settings
