@@ -292,6 +292,24 @@ export default function Customers() {
           <CardContent>
             {loading ? (
               <div className="text-center py-8">Loading customers...</div>
+            ) : filteredCustomers.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 mb-2">
+                  No customers yet
+                </h3>
+                <p className="text-slate-600 mb-4">
+                  {searchTerm || activeTab !== "all"
+                    ? "No customers match your current filters."
+                    : "Get started by adding your first customer."}
+                </p>
+                {!searchTerm && activeTab === "all" && (
+                  <Button onClick={() => setShowCustomerForm(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Your First Customer
+                  </Button>
+                )}
+              </div>
             ) : (
               <div className="space-y-4">
                 {filteredCustomers.map((customer) => (
