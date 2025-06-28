@@ -51,7 +51,6 @@ import { useCurrency } from "@/context/CurrencyContext";
 export default function Customers() {
   const { formatCurrency } = useCurrency();
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showCustomerForm, setShowCustomerForm] = useState(false);
