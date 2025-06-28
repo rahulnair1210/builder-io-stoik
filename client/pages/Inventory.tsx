@@ -112,13 +112,27 @@ export default function Inventory() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ stockLevel: newStock }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Stock update failed:", errorData.error);
+        alert(`Failed to update stock: ${errorData.error}`);
+        return;
+      }
+
       const data = await response.json();
 
-      setProducts(
-        products.map((p) => (p.id === id ? { ...p, ...data.data } : p)),
-      );
+      if (data.success) {
+        setProducts(
+          products.map((p) => (p.id === id ? { ...p, ...data.data } : p)),
+        );
+      } else {
+        console.error("Stock update failed:", data.error);
+        alert(`Failed to update stock: ${data.error}`);
+      }
     } catch (error) {
       console.error("Error updating stock:", error);
+      alert("Failed to update stock. Please try again.");
     }
   };
 
