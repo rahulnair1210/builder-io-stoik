@@ -53,8 +53,6 @@ export default function Customers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
-  );
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showCustomerForm, setShowCustomerForm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
