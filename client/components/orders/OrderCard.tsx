@@ -175,13 +175,13 @@ export function OrderCard({
           <div className="flex justify-between text-sm">
             <span className="text-slate-600">Total:</span>
             <span className="font-medium">
-              ${order.totalSelling.toFixed(2)}
+              {formatCurrency(order.totalSelling)}
             </span>
           </div>
           <div className="flex justify-between text-sm border-t pt-2">
             <span className="text-slate-600">Profit:</span>
             <span className="font-medium text-accent">
-              +${order.profit.toFixed(2)}
+              +{formatCurrency(order.profit)}
             </span>
           </div>
         </div>
