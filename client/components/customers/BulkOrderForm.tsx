@@ -294,7 +294,7 @@ export function BulkOrderForm({
                         {selectedCustomer.totalOrders}
                       </p>
                       <p className="text-sm text-accent">
-                        ${selectedCustomer.totalSpent.toLocaleString()} spent
+                        {formatCurrency(selectedCustomer.totalSpent)} spent
                       </p>
                     </div>
                   </div>
@@ -428,15 +428,15 @@ export function BulkOrderForm({
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-3 bg-slate-50 rounded-lg">
-                  <p className="text-sm text-slate-600">Items</p>
-                  <p className="text-xl font-bold">{totals.itemCount}</p>
+                  <p className="text-xl font-bold text-primary">
+                    {formatCurrency(totals.totalSelling)}
+                  </p>
                 </div>
-                <div className="text-center p-3 bg-slate-50 rounded-lg">
-                  <p className="text-sm text-slate-600">Quantity</p>
-                  <p className="text-xl font-bold">{totals.totalQuantity}</p>
-                </div>
-                <div className="text-center p-3 bg-primary/10 rounded-lg">
-                  <p className="text-sm text-slate-600">Total</p>
+                <div className="text-center">
+                  <p className="text-sm text-slate-600">Profit</p>
+                  <p className="text-xl font-bold text-accent">
+                    {formatCurrency(totals.profit)}
+                  </p>
                   <p className="text-xl font-bold text-primary">
                     ${totals.totalSelling.toFixed(2)}
                   </p>
@@ -525,7 +525,7 @@ export function BulkOrderForm({
               <ShoppingCart className="h-4 w-4 mr-2" />
               {loading
                 ? "Creating Order..."
-                : `Create Order ($${totals.totalSelling.toFixed(2)})`}
+                : `Create Order (${formatCurrency(totals.totalSelling)})`}
             </Button>
           </div>
         </form>
