@@ -18,6 +18,9 @@ export function TopSellingItems({ items }: TopSellingItemsProps) {
     );
   }
 
+  // Filter out items with invalid data
+  const validItems = items.filter((item) => item && typeof item === "object");
+
   return (
     <div className="space-y-4">
       {items.slice(0, 5).map((item, index) => {
