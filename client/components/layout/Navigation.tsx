@@ -148,22 +148,17 @@ export function Navigation() {
           inventoryCount = inventoryData.data?.length || 0;
         }
 
-        // Fetch customers with pending deliveries (with fallback)
+        // Get total customers count (simplified)
         let customersCount = 0;
         try {
-          const customersResponse = await fetch(
-            "/api/customers/pending-deliveries",
-          );
+          const customersResponse = await fetch("/api/customers");
           if (customersResponse.ok) {
             const customersData = await customersResponse.json();
             customersCount = customersData.data?.length || 0;
           }
         } catch (customerError) {
           // Fallback: just set customers count to 0 if endpoint fails
-          console.warn(
-            "Could not fetch customer pending deliveries:",
-            customerError,
-          );
+          console.warn("Could not fetch customers:", customerError);
           customersCount = 0;
         }
 
