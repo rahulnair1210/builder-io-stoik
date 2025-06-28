@@ -43,6 +43,7 @@ export function BulkOrderForm({
   customer,
   onSubmit,
 }: BulkOrderFormProps) {
+  const { formatCurrency } = useCurrency();
   const [products, setProducts] = useState<TShirt[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
