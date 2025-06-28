@@ -125,7 +125,8 @@ export class CustomerService {
       if (!isFirebaseAvailable) {
         const customer = MockDataStore.getCustomerById(customerId);
         if (!customer) {
-          throw new Error("Customer not found");
+          console.warn(`Customer ${customerId} not found for stats update`);
+          return; // Silently skip if customer not found
         }
         const newTotalSpent = (customer.totalSpent || 0) + orderValue;
         const newTotalOrders = (customer.totalOrders || 0) + 1;
@@ -139,7 +140,8 @@ export class CustomerService {
 
       const customerDoc = await this.collection.doc(customerId).get();
       if (!customerDoc.exists) {
-        throw new Error("Customer not found");
+        console.warn(`Customer ${customerId} not found for stats update`);
+        return; // Silently skip if customer not found
       }
 
       const customer = customerDoc.data() as Customer;
@@ -153,7 +155,8 @@ export class CustomerService {
       });
     } catch (error) {
       console.error("Error updating customer stats:", error);
-      throw error;
+      // Don't throw error, just log it
+      console.warn("Customer stats update failed, continuing...");
     }
   }
 
