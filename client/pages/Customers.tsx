@@ -57,6 +57,9 @@ export default function Customers() {
   const [showHistory, setShowHistory] = useState(false);
   const [showBulkOrder, setShowBulkOrder] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
 
   useEffect(() => {
     fetchCustomers();
