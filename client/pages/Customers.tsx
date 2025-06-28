@@ -70,48 +70,18 @@ export default function Customers() {
       setLoading(true);
       const response = await fetch("/api/customers");
       const data = await response.json();
-      setCustomers(data.data || []);
+
+      if (data.success) {
+        setCustomers(data.data || []);
+      } else {
+        console.error("API Error:", data.error);
+        // If it's a server error, show empty state instead of mock data
+        setCustomers([]);
+      }
     } catch (error) {
       console.error("Error fetching customers:", error);
-      // Set mock data for development
-      setCustomers([
-        {
-          id: "1",
-          name: "John Smith",
-          email: "john@example.com",
-          phone: "+1-555-0123",
-          address: {
-            street: "123 Main St",
-            city: "New York",
-            state: "NY",
-            zipCode: "10001",
-            country: "USA",
-          },
-          totalOrders: 8,
-          totalSpent: 1245.67,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          preferredContactMethod: "email",
-        },
-        {
-          id: "2",
-          name: "Jane Doe",
-          email: "jane@example.com",
-          phone: "+1-555-0124",
-          address: {
-            street: "456 Oak Ave",
-            city: "Los Angeles",
-            state: "CA",
-            zipCode: "90210",
-            country: "USA",
-          },
-          totalOrders: 3,
-          totalSpent: 789.45,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          preferredContactMethod: "phone",
-        },
-      ]);
+      // Network error - show empty state
+      setCustomers([]);
     } finally {
       setLoading(false);
     }
