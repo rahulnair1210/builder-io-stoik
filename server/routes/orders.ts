@@ -67,8 +67,18 @@ export const getOrderById: RequestHandler = async (req, res) => {
     // Populate customer information
     let orderWithCustomer = order;
     if (order.customerId) {
-      const customer = await customerService.getCustomerById(order.customerId);
-      orderWithCustomer = { ...order, customer };
+      try {
+        const customer = await customerService.getCustomerById(
+          order.customerId,
+        );
+        orderWithCustomer = { ...order, customer };
+      } catch (error) {
+        console.warn(
+          `Customer ${order.customerId} not found for order ${order.id}`,
+        );
+        // Return order without customer info if customer not found
+        orderWithCustomer = { ...order, customer: null };
+      }
     }
 
     const response: ApiResponse<Order> = {
