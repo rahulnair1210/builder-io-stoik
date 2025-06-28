@@ -269,7 +269,8 @@ export class MockDataStore {
       this.customers[index] = { ...this.customers[index], ...updates };
       return this.customers[index];
     }
-    throw new Error("Customer not found");
+    console.warn(`Customer ${id} not found for update`);
+    return null;
   }
 
   static deleteCustomer(id: string) {
