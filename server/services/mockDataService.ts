@@ -269,6 +269,13 @@ export class MockDataStore {
     throw new Error("Customer not found");
   }
 
+  static deleteCustomer(id: string) {
+    const index = this.customers.findIndex((c) => c.id === id);
+    if (index !== -1) {
+      this.customers.splice(index, 1);
+    }
+  }
+
   // Orders
   static getOrders() {
     return [...this.orders];
