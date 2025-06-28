@@ -122,6 +122,21 @@ export class CustomerService {
     orderValue: number,
   ): Promise<void> {
     try {
+      if (!isFirebaseAvailable) {
+        const customer = MockDataStore.getCustomerById(customerId);
+        if (!customer) {
+          throw new Error("Customer not found");
+        }
+        const newTotalSpent = (customer.totalSpent || 0) + orderValue;
+        const newTotalOrders = (customer.totalOrders || 0) + 1;
+        MockDataStore.updateCustomer(customerId, {
+          totalSpent: newTotalSpent,
+          totalOrders: newTotalOrders,
+          updatedAt: new Date().toISOString(),
+        });
+        return;
+      }
+
       const customerDoc = await this.collection.doc(customerId).get();
       if (!customerDoc.exists) {
         throw new Error("Customer not found");
@@ -129,11 +144,11 @@ export class CustomerService {
 
       const customer = customerDoc.data() as Customer;
       const newTotalSpent = (customer.totalSpent || 0) + orderValue;
-      const newOrderCount = (customer.orderCount || 0) + 1;
+      const newTotalOrders = (customer.totalOrders || 0) + 1;
 
       await this.collection.doc(customerId).update({
         totalSpent: newTotalSpent,
-        orderCount: newOrderCount,
+        totalOrders: newTotalOrders,
         updatedAt: new Date().toISOString(),
       });
     } catch (error) {
