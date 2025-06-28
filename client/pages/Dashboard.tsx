@@ -14,6 +14,7 @@ import {
   Settings,
   Bell,
   Download,
+  Loader2,
 } from "lucide-react";
 import { DashboardStats, NotificationPreferences } from "@shared/types";
 import { StatsCard } from "@/components/dashboard/StatsCard";
@@ -26,6 +27,7 @@ import { Navigation } from "@/components/layout/Navigation";
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [notifications, setNotifications] = useState<NotificationPreferences>({
     lowStock: true,
     outOfStock: true,
@@ -48,6 +50,181 @@ export default function Dashboard() {
       console.error("Error fetching dashboard stats:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const exportAllData = async () => {
+    try {
+      setExporting(true);
+
+      // Fetch all data
+      const [ordersRes, inventoryRes, customersRes] = await Promise.all([
+        fetch("/api/orders"),
+        fetch("/api/inventory"),
+        fetch("/api/customers"),
+      ]);
+
+      const [ordersData, inventoryData, customersData] = await Promise.all([
+        ordersRes.json(),
+        inventoryRes.json(),
+        customersRes.json(),
+      ]);
+
+      // Prepare data for CSV export
+      const exportData = {
+        orders: ordersData.data || [],
+        inventory: inventoryData.data || [],
+        customers: customersData.data || [],
+      };
+
+      // Create comprehensive CSV content
+      let csvContent = "STOIK INVENTORY SYSTEM - COMPLETE DATA EXPORT\n";
+      csvContent += `Generated on: ${new Date().toLocaleDateString()}\n\n`;
+
+      // Orders section
+      csvContent += "=== ORDERS ===\n";
+      csvContent +=
+        "Order ID,Customer Name,Customer Email,Customer Phone,Items Count,Total Quantity,Total Cost,Total Selling,Profit,Status,Order Date,Payment Date,Delivery Address\n";
+
+      exportData.orders.forEach((order: any) => {
+        const totalQuantity = order.items.reduce(
+          (sum: number, item: any) => sum + item.quantity,
+          0,
+        );
+        const customerName = order.customer?.name || "Unknown";
+        const customerEmail = order.customer?.email || "";
+        const customerPhone = order.customer?.phone || "";
+        const deliveryAddress = order.customer?.address
+          ? `"${order.customer.address.street} ${order.customer.address.city} ${order.customer.address.state} ${order.customer.address.zipCode}"`
+          : "";
+
+        csvContent += `${order.id},"${customerName}","${customerEmail}","${customerPhone}",${order.items.length},${totalQuantity},${order.totalCost},${order.totalSelling},${order.profit},${order.status},${order.orderDate},${order.paymentDate || "Pending"},"${deliveryAddress}"\n`;
+      });
+
+      // Order items details
+      csvContent += "\n=== ORDER ITEMS DETAILS ===\n";
+      csvContent +=
+        "Order ID,Product Name,Size,Color,Quantity,Unit Cost,Unit Price,Item Total\n";
+
+      exportData.orders.forEach((order: any) => {
+        order.items.forEach((item: any) => {
+          csvContent += `${order.id},"${item.name}",${item.size},${item.color},${item.quantity},${item.cost},${item.price},${item.quantity * item.price}\n`;
+        });
+      });
+
+      // Inventory section
+      csvContent += "\n=== INVENTORY ===\n";
+      csvContent +=
+        "Product ID,Name,Description,Category,Size,Color,Stock Quantity,Cost Price,Selling Price,Profit Margin,Status,Last Updated\n";
+
+      exportData.inventory.forEach((product: any) => {
+        const profitMargin =
+          product.sellingPrice > 0
+            ? (
+                ((product.sellingPrice - product.costPrice) /
+                  product.costPrice) *
+                100
+              ).toFixed(2)
+            : "0";
+        const status =
+          product.stock <= 0
+            ? "Out of Stock"
+            : product.stock <= 10
+              ? "Low Stock"
+              : "In Stock";
+
+        csvContent += `${product.id},"${product.name}","${product.description || ""}","${product.category}",${product.size},${product.color},${product.stock},${product.costPrice},${product.sellingPrice},${profitMargin}%,${status},${product.updatedAt || ""}\n`;
+      });
+
+      // Customers section
+      csvContent += "\n=== CUSTOMERS ===\n";
+      csvContent +=
+        "Customer ID,Name,Email,Phone,Address,Total Orders,Total Spent,Registration Date,Last Order Date,Customer Type\n";
+
+      exportData.customers.forEach((customer: any) => {
+        const customerOrders = exportData.orders.filter(
+          (order: any) => order.customerId === customer.id,
+        );
+        const totalOrders = customerOrders.length;
+        const totalSpent = customerOrders.reduce(
+          (sum: number, order: any) => sum + order.totalSelling,
+          0,
+        );
+        const lastOrderDate =
+          customerOrders.length > 0
+            ? Math.max(
+                ...customerOrders.map((o: any) =>
+                  new Date(o.orderDate).getTime(),
+                ),
+              )
+            : null;
+        const customerType =
+          totalSpent > 1000 ? "VIP" : totalOrders > 5 ? "Regular" : "New";
+        const fullAddress = customer.address
+          ? `"${customer.address.street} ${customer.address.city} ${customer.address.state} ${customer.address.zipCode}"`
+          : "";
+
+        csvContent += `${customer.id},"${customer.name}","${customer.email}","${customer.phone}","${fullAddress}",${totalOrders},${totalSpent.toFixed(2)},${customer.createdAt || ""},${lastOrderDate ? new Date(lastOrderDate).toLocaleDateString() : "Never"},${customerType}\n`;
+      });
+
+      // Business summary
+      csvContent += "\n=== BUSINESS SUMMARY ===\n";
+      const totalRevenue = exportData.orders.reduce(
+        (sum: number, order: any) => sum + order.totalSelling,
+        0,
+      );
+      const totalProfit = exportData.orders.reduce(
+        (sum: number, order: any) => sum + order.profit,
+        0,
+      );
+      const totalProducts = exportData.inventory.length;
+      const totalCustomers = exportData.customers.length;
+      const lowStockItems = exportData.inventory.filter(
+        (p: any) => p.stock <= 10,
+      ).length;
+      const profitMargin =
+        totalRevenue > 0
+          ? ((totalProfit / totalRevenue) * 100).toFixed(2)
+          : "0";
+
+      csvContent += `Total Revenue,$${totalRevenue.toFixed(2)}\n`;
+      csvContent += `Total Profit,$${totalProfit.toFixed(2)}\n`;
+      csvContent += `Profit Margin,${profitMargin}%\n`;
+      csvContent += `Total Orders,${exportData.orders.length}\n`;
+      csvContent += `Total Products,${totalProducts}\n`;
+      csvContent += `Total Customers,${totalCustomers}\n`;
+      csvContent += `Low Stock Items,${lowStockItems}\n`;
+      csvContent += `Out of Stock Items,${exportData.inventory.filter((p: any) => p.stock <= 0).length}\n`;
+      csvContent += `Export Date,${new Date().toISOString()}\n`;
+
+      // Download file
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `stoik-complete-data-${new Date().toISOString().split("T")[0]}.csv`,
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Show success notification
+      window.dispatchEvent(
+        new CustomEvent("addNotification", {
+          detail: {
+            type: "export_success",
+            message: "Complete data exported successfully to CSV file",
+          },
+        }),
+      );
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      alert("Failed to export data. Please try again.");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -128,6 +305,19 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button
+              onClick={exportAllData}
+              disabled={exporting}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              {exporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              {exporting ? "Exporting..." : "Export All Data"}
+            </Button>
             <Button variant="outline" onClick={() => exportReport("profit")}>
               <Download className="h-4 w-4 mr-2" />
               Export Report
@@ -252,9 +442,18 @@ export default function Dashboard() {
                 <Users className="h-6 w-6 mb-2" />
                 Add Customer
               </Button>
-              <Button variant="outline" className="h-20 flex-col">
-                <Download className="h-6 w-6 mb-2" />
-                Export Data
+              <Button
+                onClick={exportAllData}
+                disabled={exporting}
+                variant="outline"
+                className="h-20 flex-col"
+              >
+                {exporting ? (
+                  <Loader2 className="h-6 w-6 mb-2 animate-spin" />
+                ) : (
+                  <Download className="h-6 w-6 mb-2" />
+                )}
+                {exporting ? "Exporting..." : "Export Data"}
               </Button>
             </div>
           </CardContent>
