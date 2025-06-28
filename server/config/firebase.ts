@@ -1,5 +1,9 @@
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 // Check if Firebase is properly configured
 const firebaseConfig = {
