@@ -144,16 +144,19 @@ export const deleteProduct: RequestHandler = async (req, res) => {
 export const updateStock: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
-    const { stock } = req.body;
+    const { stockLevel, stock } = req.body;
 
-    if (typeof stock !== "number" || stock < 0) {
+    // Accept both stockLevel and stock for compatibility
+    const newStock = stockLevel !== undefined ? stockLevel : stock;
+
+    if (typeof newStock !== "number" || newStock < 0) {
       return res.status(400).json({
         success: false,
         error: "Invalid stock value",
       });
     }
 
-    const product = await inventoryService.updateStock(id, stock);
+    const product = await inventoryService.updateStock(id, newStock);
 
     const response: ApiResponse<TShirt> = {
       success: true,
