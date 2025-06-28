@@ -63,6 +63,14 @@ export class CustomerService {
         updatedAt: now,
       };
 
+      if (!isFirebaseAvailable) {
+        const newCustomer = {
+          id: Math.random().toString(36).substr(2, 9),
+          ...customer,
+        };
+        return MockDataStore.addCustomer(newCustomer);
+      }
+
       const docRef = await this.collection.add(customer);
       return { id: docRef.id, ...customer };
     } catch (error) {
