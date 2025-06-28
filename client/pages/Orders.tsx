@@ -69,6 +69,36 @@ export default function Orders() {
     fetchCustomers();
   }, [filters, activeTab]);
 
+  // Seed data if needed (for development)
+  useEffect(() => {
+    const seedData = async () => {
+      try {
+        // Check if we have any data
+        const customersResponse = await fetch("/api/customers");
+        const customersData = await customersResponse.json();
+
+        if (
+          customersData.success &&
+          (!customersData.data || customersData.data.length === 0)
+        ) {
+          // No customers found, seed some data
+          console.log("No customers found, seeding initial data...");
+          await fetch("/api/customers/seed", { method: "POST" });
+          await fetch("/api/inventory/seed", { method: "POST" });
+          // Refresh data after seeding
+          setTimeout(() => {
+            fetchCustomers();
+            fetchOrders();
+          }, 1000);
+        }
+      } catch (error) {
+        console.log("Seeding check failed:", error);
+      }
+    };
+
+    seedData();
+  }, []);
+
   const fetchCustomers = async () => {
     try {
       const response = await fetch("/api/customers");
