@@ -156,3 +156,8 @@ app.listen(PORT, () => {
 });
 
 export default app;
+
+// Export createServer function for vite config
+export function createServer() {
+  return app;
+}
