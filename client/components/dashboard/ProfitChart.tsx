@@ -79,6 +79,17 @@ export function ProfitChart({ data }: ProfitChartProps) {
             axisLine={true}
             tickLine={true}
             type="category"
+            allowDecimals={true}
+            allowDuplicatedCategory={true}
+            angle={0}
+            hide={false}
+            includeHidden={false}
+            mirror={false}
+            orientation="bottom"
+            reversed={false}
+            scale="auto"
+            tickMargin={5}
+            unit=""
           />
           <YAxis
             tickFormatter={formatCurrency}
@@ -87,6 +98,18 @@ export function ProfitChart({ data }: ProfitChartProps) {
             axisLine={true}
             tickLine={true}
             type="number"
+            allowDecimals={true}
+            allowDuplicatedCategory={true}
+            angle={0}
+            hide={false}
+            includeHidden={false}
+            mirror={false}
+            orientation="left"
+            reversed={false}
+            scale="auto"
+            tickMargin={5}
+            unit=""
+            yAxisId={0}
           />
           <Tooltip
             content={({ active, payload, label }) => {
