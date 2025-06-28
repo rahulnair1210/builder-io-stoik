@@ -1,183 +1,145 @@
 import { RequestHandler } from "express";
 import { ApiResponse } from "@shared/types";
+import { settingsService } from "../services/settingsService";
 
-// Mock settings data
-let settingsData = {
-  notifications: {
-    lowStock: true,
-    outOfStock: true,
-    newOrders: true,
-    orderStatusUpdates: false,
-    paymentUpdates: false,
-    whatsappEnabled: false,
-    whatsappNumber: "",
-    emailEnabled: true,
-    emailAddress: "",
-    lowStockThreshold: 5,
-  },
-  business: {
-    businessName: "T-Shirt Store",
-    address: "",
-    phone: "",
-    email: "",
-    currency: "USD",
-    taxRate: 0,
-    defaultMinStock: 5,
-  },
-};
-
-export const getSettings: RequestHandler = (req, res) => {
+// Get all settings
+export const getSettings: RequestHandler = async (req, res) => {
   try {
-    const response: ApiResponse<typeof settingsData> = {
-      data: settingsData,
+    const settings = await settingsService.getSettings();
+
+    const response: ApiResponse<any> = {
       success: true,
+      data: settings,
     };
 
     res.json(response);
   } catch (error) {
-    console.error("Error fetching settings:", error);
+    console.error("Error in getSettings:", error);
     res.status(500).json({
-      data: null,
       success: false,
-      message: "Failed to fetch settings",
+      error: "Failed to fetch settings",
     });
   }
 };
 
-export const updateSettings: RequestHandler = (req, res) => {
+// Update settings
+export const updateSettings: RequestHandler = async (req, res) => {
   try {
-    const { notifications, business } = req.body;
+    const settingsData = req.body;
+    const settings = await settingsService.updateSettings(settingsData);
 
-    if (notifications) {
-      settingsData.notifications = {
-        ...settingsData.notifications,
-        ...notifications,
-      };
-    }
-
-    if (business) {
-      settingsData.business = { ...settingsData.business, ...business };
-    }
-
-    const response: ApiResponse<typeof settingsData> = {
-      data: settingsData,
+    const response: ApiResponse<any> = {
       success: true,
-      message: "Settings updated successfully",
+      data: settings,
     };
 
     res.json(response);
   } catch (error) {
-    console.error("Error updating settings:", error);
+    console.error("Error in updateSettings:", error);
     res.status(500).json({
-      data: null,
       success: false,
-      message: "Failed to update settings",
+      error: "Failed to update settings",
     });
   }
 };
 
-export const testWhatsAppNotification: RequestHandler = (req, res) => {
+// Update currency only
+export const updateCurrency: RequestHandler = async (req, res) => {
+  try {
+    const { currency } = req.body;
+
+    if (!currency) {
+      return res.status(400).json({
+        success: false,
+        error: "Currency is required",
+      });
+    }
+
+    await settingsService.updateCurrency(currency);
+
+    const response: ApiResponse<null> = {
+      success: true,
+      data: null,
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error in updateCurrency:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update currency",
+    });
+  }
+};
+
+// Test WhatsApp notification
+export const testWhatsAppNotification: RequestHandler = async (req, res) => {
   try {
     const { number, message } = req.body;
 
-    // In a real implementation, you would integrate with WhatsApp Business API
-    // For now, we'll simulate a successful test
-    console.log(`Would send WhatsApp to ${number}: ${message}`);
-
-    // Simulate API call delay
-    setTimeout(() => {
-      const response: ApiResponse<{ sent: boolean }> = {
-        data: { sent: true },
-        success: true,
-        message: "WhatsApp test message sent successfully",
-      };
-
-      res.json(response);
-    }, 1000);
-  } catch (error) {
-    console.error("Error testing WhatsApp:", error);
-    res.status(500).json({
-      data: { sent: false },
-      success: false,
-      message: "Failed to send WhatsApp test message",
-    });
-  }
-};
-
-export const sendLowStockNotification: RequestHandler = (req, res) => {
-  try {
-    const { products } = req.body;
-
-    // Check if WhatsApp notifications are enabled
-    if (
-      settingsData.notifications.whatsappEnabled &&
-      settingsData.notifications.whatsappNumber
-    ) {
-      // Format message for low stock products
-      let message = "🚨 LOW STOCK ALERT 🚨\n\n";
-      products.forEach((product: any) => {
-        message += `📦 ${product.name} (${product.size}, ${product.color})\n`;
-        message += `   Only ${product.stockLevel} left (Min: ${product.minStockLevel})\n\n`;
+    if (!number || !message) {
+      return res.status(400).json({
+        success: false,
+        error: "Number and message are required",
       });
-      message += "Please restock these items soon!";
-
-      console.log(
-        `Would send WhatsApp to ${settingsData.notifications.whatsappNumber}: ${message}`,
-      );
     }
 
-    const response: ApiResponse<{ sent: boolean }> = {
-      data: { sent: true },
+    // In a real implementation, you would integrate with WhatsApp API here
+    // For now, we'll just simulate a successful response
+    console.log(`WhatsApp test message to ${number}: ${message}`);
+
+    const response: ApiResponse<any> = {
       success: true,
-      message: "Low stock notifications sent",
+      data: { sent: true, number, message },
     };
 
     res.json(response);
   } catch (error) {
-    console.error("Error sending low stock notification:", error);
+    console.error("Error in testWhatsAppNotification:", error);
     res.status(500).json({
-      data: { sent: false },
       success: false,
-      message: "Failed to send low stock notification",
+      error: "Failed to send test WhatsApp message",
     });
   }
 };
 
-export const sendOrderCreatedNotification: RequestHandler = (req, res) => {
+// Get business settings only
+export const getBusinessSettings: RequestHandler = async (req, res) => {
   try {
-    const { orderId, customerName, total } = req.body;
+    const businessSettings = await settingsService.getBusinessSettings();
 
-    // Check if WhatsApp notifications are enabled
-    if (
-      settingsData.notifications.whatsappEnabled &&
-      settingsData.notifications.whatsappNumber
-    ) {
-      // Format message for new order
-      const message =
-        `🎉 NEW ORDER RECEIVED!\n\n` +
-        `Order ID: #${orderId}\n` +
-        `Customer: ${customerName}\n` +
-        `Amount: ₹${total}\n\n` +
-        `Thank you for your business!`;
-
-      console.log(
-        `Would send WhatsApp to ${settingsData.notifications.whatsappNumber}: ${message}`,
-      );
-    }
-
-    const response: ApiResponse<{ sent: boolean }> = {
-      data: { sent: true },
+    const response: ApiResponse<any> = {
       success: true,
-      message: "Order notification sent",
+      data: businessSettings,
     };
 
     res.json(response);
   } catch (error) {
-    console.error("Error sending order notification:", error);
+    console.error("Error in getBusinessSettings:", error);
     res.status(500).json({
-      data: { sent: false },
       success: false,
-      message: "Failed to send order notification",
+      error: "Failed to fetch business settings",
+    });
+  }
+};
+
+// Get notification settings only
+export const getNotificationSettings: RequestHandler = async (req, res) => {
+  try {
+    const notificationSettings =
+      await settingsService.getNotificationSettings();
+
+    const response: ApiResponse<any> = {
+      success: true,
+      data: notificationSettings,
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error in getNotificationSettings:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch notification settings",
     });
   }
 };
