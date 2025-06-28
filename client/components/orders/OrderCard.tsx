@@ -200,14 +200,49 @@ export function OrderCard({
         <div className="mt-4 pt-4 border-t">
           <div className="flex justify-between items-center">
             <span className="text-sm text-slate-600">Payment Status:</span>
-            <Badge
-              variant={order.paymentStatus === "paid" ? "secondary" : "outline"}
-              className={
-                order.paymentStatus === "paid" ? "bg-accent/20 text-accent" : ""
-              }
-            >
-              {order.paymentStatus}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge
+                variant={
+                  order.paymentStatus === "paid" ? "secondary" : "outline"
+                }
+                className={
+                  order.paymentStatus === "paid"
+                    ? "bg-accent/20 text-accent"
+                    : ""
+                }
+              >
+                {order.paymentStatus}
+              </Badge>
+              {order.paymentStatus === "pending" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs px-2 py-1 h-auto"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      const response = await fetch(
+                        `/api/orders/${order.id}/payment`,
+                        {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ paymentStatus: "paid" }),
+                        },
+                      );
+                      const data = await response.json();
+                      if (data.success) {
+                        // Trigger a refresh of the parent component
+                        window.location.reload();
+                      }
+                    } catch (error) {
+                      console.error("Error updating payment:", error);
+                    }
+                  }}
+                >
+                  Mark Paid
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>
