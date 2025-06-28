@@ -480,11 +480,12 @@ export default function Customers() {
                 await fetchCustomers();
 
                 // Add success notification
+                const orderTotal = result.data.totalSelling || 0;
                 window.dispatchEvent(
                   new CustomEvent("addNotification", {
                     detail: {
-                      type: "order_created",
-                      message: `Order #${result.data.id} created successfully for ${selectedCustomer?.name || "customer"}`,
+                      type: "bulk_order",
+                      message: `Bulk order #${result.data.id} created for ${selectedCustomer?.name || "customer"} - $${orderTotal.toFixed(2)}`,
                     },
                   }),
                 );
