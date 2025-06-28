@@ -58,7 +58,7 @@ export class CustomerService {
       const customer: Omit<Customer, "id"> = {
         ...customerData,
         totalSpent: customerData.totalSpent || 0,
-        orderCount: customerData.orderCount || 0,
+        totalOrders: customerData.totalOrders || 0,
         createdAt: now,
         updatedAt: now,
       };
