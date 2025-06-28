@@ -113,12 +113,6 @@ export function Navigation() {
       badge: badges.orders > 0 ? badges.orders : null,
     },
     {
-      name: "Bulk Orders",
-      href: "/bulk-orders",
-      icon: Package,
-      badge: null,
-    },
-    {
       name: "Customers",
       href: "/customers",
       icon: Users,

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -37,8 +38,12 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  Download,
+  Calendar,
+  TrendingUp,
+  Users,
 } from "lucide-react";
-import { FilterOptions } from "@shared/types";
+import { FilterOptions, Order, Customer } from "@shared/types";
 import { Navigation } from "@/components/layout/Navigation";
 import { OrderDetailsDialog } from "@/components/orders/OrderDetailsDialog";
 import { EditOrderDialog } from "@/components/orders/EditOrderDialog";
@@ -47,6 +52,7 @@ import { NewOrderDialog } from "@/components/orders/NewOrderDialog";
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterOptions>({});
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -54,10 +60,22 @@ export default function Orders() {
   const [showEditOrder, setShowEditOrder] = useState(false);
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
+  const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
     fetchOrders();
-  }, [filters]);
+    fetchCustomers();
+  }, [filters, activeTab]);
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await fetch("/api/customers");
+      const data = await response.json();
+      setCustomers(data.data || []);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -69,7 +87,19 @@ export default function Orders() {
 
       const response = await fetch(`/api/orders?${queryParams}`);
       const data = await response.json();
-      setOrders(data.data);
+
+      let filteredOrders = data.data || [];
+
+      // Filter based on active tab
+      if (activeTab === "bulk") {
+        filteredOrders = filteredOrders.filter(
+          (order: Order) =>
+            order.items.length >= 2 ||
+            order.items.some((item) => item.quantity >= 5),
+        );
+      }
+
+      setOrders(filteredOrders);
     } catch (error) {
       console.error("Error fetching orders:", error);
     } finally {
@@ -200,6 +230,35 @@ export default function Orders() {
     });
   };
 
+  const getCustomerName = (customerId: string) => {
+    const customer = customers.find((c) => c.id === customerId);
+    return customer?.name || "Unknown Customer";
+  };
+
+  const getBulkOrderStats = () => {
+    const bulkOrders = orders.filter(
+      (order) =>
+        order.items.length >= 2 ||
+        order.items.some((item) => item.quantity >= 5),
+    );
+
+    return {
+      totalOrders: bulkOrders.length,
+      totalRevenue: bulkOrders.reduce(
+        (sum, order) => sum + order.totalSelling,
+        0,
+      ),
+      totalProfit: bulkOrders.reduce((sum, order) => sum + order.profit, 0),
+      averageOrderValue:
+        bulkOrders.length > 0
+          ? bulkOrders.reduce((sum, order) => sum + order.totalSelling, 0) /
+            bulkOrders.length
+          : 0,
+      pendingOrders: bulkOrders.filter((order) => order.status === "pending")
+        .length,
+    };
+  };
+
   const getOrderStats = () => {
     const stats = {
       total: orders.length,
@@ -214,6 +273,7 @@ export default function Orders() {
   };
 
   const stats = getOrderStats();
+  const bulkStats = getBulkOrderStats();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -228,279 +288,570 @@ export default function Orders() {
               Manage customer orders and track fulfillment
             </p>
           </div>
-          <Button onClick={() => setShowNewOrder(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Order
-          </Button>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">
-                    Total Orders
-                  </p>
-                  <p className="text-2xl font-bold">{stats.total}</p>
-                </div>
-                <ShoppingCart className="h-8 w-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Pending</p>
-                  <p className="text-2xl font-bold text-warning">
-                    {stats.pending}
-                  </p>
-                </div>
-                <Clock className="h-8 w-8 text-warning" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Revenue</p>
-                  <p className="text-2xl font-bold">
-                    ${stats.totalRevenue.toLocaleString()}
-                  </p>
-                </div>
-                <DollarSign className="h-8 w-8 text-accent" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Profit</p>
-                  <p className="text-2xl font-bold text-accent">
-                    ${stats.totalProfit.toLocaleString()}
-                  </p>
-                </div>
-                <DollarSign className="h-8 w-8 text-accent" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search orders..."
-                    className="pl-10"
-                    value={filters.search || ""}
-                    onChange={(e) =>
-                      setFilters({ ...filters, search: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-              <Select
-                value={filters.status || "all"}
-                onValueChange={(value) =>
-                  setFilters({
-                    ...filters,
-                    status: value === "all" ? undefined : value,
-                  })
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="shipped">Shipped</SelectItem>
-                  <SelectItem value="delivered">Delivered</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Orders Table */}
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>Recent Orders</CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  variant={viewMode === "table" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("table")}
-                >
-                  Table
-                </Button>
-                <Button
-                  variant={viewMode === "grid" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("grid")}
-                >
-                  Grid
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-8">Loading orders...</div>
-            ) : viewMode === "table" ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Profit</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Order Date</TableHead>
-                    <TableHead>Payment Received</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell>
-                        <span className="font-medium">#{order.id}</span>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{order.customer?.name}</p>
-                          <p className="text-sm text-slate-600">
-                            {order.customer?.email}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-slate-600">
-                          {order.items.length} items
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">
-                          ${order.totalSelling.toFixed(2)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium text-accent">
-                          +${order.profit.toFixed(2)}
-                        </span>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(order.status)}</TableCell>
-                      <TableCell>
-                        <span className="text-slate-600">
-                          {formatDate(order.orderDate)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {order.paymentDate ? (
-                          <span className="text-accent font-medium">
-                            {formatDate(order.paymentDate)}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">Pending</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedOrder(order);
-                                setShowOrderDetails(true);
-                              }}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedOrder(order);
-                                setShowEditOrder(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit Order
-                            </DropdownMenuItem>
-                            {order.status === "pending" && (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  updateOrderStatus(order.id, "processing")
-                                }
-                              >
-                                <Package className="h-4 w-4 mr-2" />
-                                Mark Processing
-                              </DropdownMenuItem>
-                            )}
-                            {order.status === "processing" && (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  updateOrderStatus(order.id, "shipped")
-                                }
-                              >
-                                <Truck className="h-4 w-4 mr-2" />
-                                Mark Shipped
-                              </DropdownMenuItem>
-                            )}
-                            {order.status === "shipped" && (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  updateOrderStatus(order.id, "delivered")
-                                }
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Mark Delivered
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {orders.map((order) => (
-                  <OrderCard
-                    key={order.id}
-                    order={order}
-                    onViewDetails={(order) => {
-                      setSelectedOrder(order);
-                      setShowOrderDetails(true);
-                    }}
-                    onEdit={(order) => {
-                      setSelectedOrder(order);
-                      setShowEditOrder(true);
-                    }}
-                    onUpdateStatus={updateOrderStatus}
-                  />
-                ))}
-              </div>
+          <div className="flex gap-2">
+            {activeTab === "bulk" && (
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export Bulk Orders
+              </Button>
             )}
-          </CardContent>
-        </Card>
+            <Button onClick={() => setShowNewOrder(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Order
+            </Button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="all">All Orders</TabsTrigger>
+            <TabsTrigger value="bulk">Bulk Orders</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600">
+                        Total Orders
+                      </p>
+                      <p className="text-2xl font-bold">{stats.total}</p>
+                    </div>
+                    <ShoppingCart className="h-8 w-8 text-primary" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600">
+                        Pending
+                      </p>
+                      <p className="text-2xl font-bold text-warning">
+                        {stats.pending}
+                      </p>
+                    </div>
+                    <Clock className="h-8 w-8 text-warning" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600">
+                        Revenue
+                      </p>
+                      <p className="text-2xl font-bold">
+                        ${stats.totalRevenue.toLocaleString()}
+                      </p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-accent" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600">
+                        Profit
+                      </p>
+                      <p className="text-2xl font-bold text-accent">
+                        ${stats.totalProfit.toLocaleString()}
+                      </p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-accent" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Filters */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                      <Input
+                        placeholder="Search orders..."
+                        className="pl-10"
+                        value={filters.search || ""}
+                        onChange={(e) =>
+                          setFilters({ ...filters, search: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <Select
+                    value={filters.status || "all"}
+                    onValueChange={(value) =>
+                      setFilters({
+                        ...filters,
+                        status: value === "all" ? undefined : value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="shipped">Shipped</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Orders Table */}
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Recent Orders</CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={viewMode === "table" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setViewMode("table")}
+                    >
+                      Table
+                    </Button>
+                    <Button
+                      variant={viewMode === "grid" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setViewMode("grid")}
+                    >
+                      Grid
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-8">Loading orders...</div>
+                ) : viewMode === "table" ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Profit</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Order Date</TableHead>
+                        <TableHead>Payment Received</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell>
+                            <span className="font-medium">#{order.id}</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">
+                                {order.customer?.name}
+                              </p>
+                              <p className="text-sm text-slate-600">
+                                {order.customer?.email}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-slate-600">
+                              {order.items.length} items
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium">
+                              ${order.totalSelling.toFixed(2)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium text-accent">
+                              +${order.profit.toFixed(2)}
+                            </span>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(order.status)}</TableCell>
+                          <TableCell>
+                            <span className="text-slate-600">
+                              {formatDate(order.orderDate)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {order.paymentDate ? (
+                              <span className="text-accent font-medium">
+                                {formatDate(order.paymentDate)}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">Pending</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedOrder(order);
+                                    setShowOrderDetails(true);
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedOrder(order);
+                                    setShowEditOrder(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit Order
+                                </DropdownMenuItem>
+                                {order.status === "pending" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      updateOrderStatus(order.id, "processing")
+                                    }
+                                  >
+                                    <Package className="h-4 w-4 mr-2" />
+                                    Mark Processing
+                                  </DropdownMenuItem>
+                                )}
+                                {order.status === "processing" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      updateOrderStatus(order.id, "shipped")
+                                    }
+                                  >
+                                    <Truck className="h-4 w-4 mr-2" />
+                                    Mark Shipped
+                                  </DropdownMenuItem>
+                                )}
+                                {order.status === "shipped" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      updateOrderStatus(order.id, "delivered")
+                                    }
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    Mark Delivered
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {orders.map((order) => (
+                      <OrderCard
+                        key={order.id}
+                        order={order}
+                        onViewDetails={(order) => {
+                          setSelectedOrder(order);
+                          setShowOrderDetails(true);
+                        }}
+                        onEdit={(order) => {
+                          setSelectedOrder(order);
+                          setShowEditOrder(true);
+                        }}
+                        onUpdateStatus={updateOrderStatus}
+                      />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="bulk" className="space-y-6">
+            {/* Bulk Orders Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600">
+                        Total Bulk Orders
+                      </p>
+                      <p className="text-2xl font-bold">
+                        {bulkStats.totalOrders}
+                      </p>
+                    </div>
+                    <Package className="h-8 w-8 text-primary" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600">
+                        Pending Orders
+                      </p>
+                      <p className="text-2xl font-bold text-warning">
+                        {bulkStats.pendingOrders}
+                      </p>
+                    </div>
+                    <Calendar className="h-8 w-8 text-warning" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600">
+                        Total Revenue
+                      </p>
+                      <p className="text-2xl font-bold">
+                        ${bulkStats.totalRevenue.toLocaleString()}
+                      </p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-accent" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600">
+                        Total Profit
+                      </p>
+                      <p className="text-2xl font-bold text-accent">
+                        ${bulkStats.totalProfit.toLocaleString()}
+                      </p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-accent" />
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600">
+                        Avg Order Value
+                      </p>
+                      <p className="text-2xl font-bold">
+                        ${bulkStats.averageOrderValue.toFixed(0)}
+                      </p>
+                    </div>
+                    <Users className="h-8 w-8 text-slate-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Bulk Orders Filters */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                      <Input
+                        placeholder="Search bulk orders..."
+                        className="pl-10"
+                        value={filters.search || ""}
+                        onChange={(e) =>
+                          setFilters({ ...filters, search: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <Select
+                    value={filters.status || "all"}
+                    onValueChange={(value) =>
+                      setFilters({
+                        ...filters,
+                        status: value === "all" ? undefined : value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="shipped">Shipped</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bulk Orders Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Bulk Orders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-8">Loading bulk orders...</div>
+                ) : orders.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    <Package className="h-12 w-12 mx-auto mb-3 text-slate-300" />
+                    <p className="text-lg font-medium">No Bulk Orders Found</p>
+                    <p className="text-sm">
+                      Bulk orders are orders with 2+ items or quantities of 5+
+                    </p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Total Qty</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Profit</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Order Date</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell>
+                            <span className="font-medium">#{order.id}</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">
+                                {order.customer?.name ||
+                                  getCustomerName(order.customerId)}
+                              </p>
+                              <p className="text-sm text-slate-600">
+                                {order.customer?.email}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline">
+                                {order.items.length} items
+                              </Badge>
+                              {order.items.length >= 5 && (
+                                <Badge className="bg-accent/20 text-accent">
+                                  High Volume
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium">
+                              {order.items.reduce(
+                                (sum, item) => sum + item.quantity,
+                                0,
+                              )}{" "}
+                              units
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium">
+                              ${order.totalSelling.toFixed(2)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium text-accent">
+                              +${order.profit.toFixed(2)}
+                            </span>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(order.status)}</TableCell>
+                          <TableCell>
+                            <span className="text-slate-600">
+                              {formatDate(order.orderDate)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {order.paymentDate ? (
+                              <span className="text-accent font-medium">
+                                {formatDate(order.paymentDate)}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">Pending</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedOrder(order);
+                                    setShowOrderDetails(true);
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedOrder(order);
+                                    setShowEditOrder(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit Order
+                                </DropdownMenuItem>
+                                {order.status === "pending" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      updateOrderStatus(order.id, "processing")
+                                    }
+                                  >
+                                    <Package className="h-4 w-4 mr-2" />
+                                    Mark Processing
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {/* Order Details Dialog */}
         <OrderDetailsDialog
