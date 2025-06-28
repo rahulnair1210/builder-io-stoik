@@ -23,7 +23,7 @@ export function TopSellingItems({ items }: TopSellingItemsProps) {
 
   return (
     <div className="space-y-4">
-      {items.slice(0, 5).map((item, index) => {
+      {validItems.slice(0, 5).map((item, index) => {
         // Handle cases where tshirt might be undefined
         const tshirt = item.tshirt || {};
         const name = tshirt.name || "Unknown Product";
