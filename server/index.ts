@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import { handleDemo } from "./routes/demo";
 import {
   getAllProducts,
   getProductById,
@@ -8,15 +7,9 @@ import {
   updateProduct,
   deleteProduct,
   updateStock,
+  getLowStockProducts,
+  seedData as seedInventoryData,
 } from "./routes/inventory";
-import { getDashboardStats } from "./routes/analytics";
-import {
-  getAllOrders,
-  getOrderById,
-  createOrder,
-  updateOrder,
-  updateOrderStatus,
-} from "./routes/orders";
 import {
   getAllCustomers,
   getCustomerById,
@@ -24,69 +17,142 @@ import {
   updateCustomer,
   deleteCustomer,
   getCustomerOrders,
-  getPendingDeliveries,
+  seedData as seedCustomerData,
 } from "./routes/customers";
+import {
+  getAllOrders,
+  getOrderById,
+  createOrder,
+  updateOrder,
+  updateOrderStatus,
+  deleteOrder,
+  seedData as seedOrderData,
+} from "./routes/orders";
+import {
+  getDashboardAnalytics,
+  getRecentOrders,
+  getLowStockAlerts,
+} from "./routes/analytics";
 import {
   getSettings,
   updateSettings,
+  updateCurrency,
   testWhatsAppNotification,
-  sendLowStockNotification,
-  sendOrderCreatedNotification,
+  getBusinessSettings,
+  getNotificationSettings,
 } from "./routes/settings";
 
-export function createServer() {
-  const app = express();
+const app = express();
+const PORT = process.env.PORT || 3001;
 
-  // Middleware
-  app.use(cors());
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-  // Example API routes
-  app.get("/api/ping", (_req, res) => {
-    res.json({ message: "Hello from Express server v2!" });
+// Root endpoint
+app.get("/", (req, res) => {
+  res.json({
+    message: "Stoik T-Shirt Inventory Management API",
+    version: "2.0.0",
+    database: "Firebase Firestore",
   });
+});
 
-  app.get("/api/demo", handleDemo);
+// Health check
+app.get("/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() });
+});
 
-  // Inventory routes
-  app.get("/api/inventory", getAllProducts);
-  app.get("/api/inventory/:id", getProductById);
-  app.post("/api/inventory", createProduct);
-  app.put("/api/inventory/:id", updateProduct);
-  app.delete("/api/inventory/:id", deleteProduct);
-  app.patch("/api/inventory/:id/stock", updateStock);
+// Inventory/Products routes
+app.get("/api/inventory", getAllProducts);
+app.get("/api/inventory/:id", getProductById);
+app.post("/api/inventory", createProduct);
+app.put("/api/inventory/:id", updateProduct);
+app.delete("/api/inventory/:id", deleteProduct);
+app.patch("/api/inventory/:id/stock", updateStock);
+app.get("/api/inventory/alerts/low-stock", getLowStockProducts);
+app.post("/api/inventory/seed", seedInventoryData);
 
-  // Analytics routes
-  app.get("/api/analytics/dashboard", getDashboardStats);
+// Customer routes
+app.get("/api/customers", getAllCustomers);
+app.get("/api/customers/:id", getCustomerById);
+app.post("/api/customers", createCustomer);
+app.put("/api/customers/:id", updateCustomer);
+app.delete("/api/customers/:id", deleteCustomer);
+app.get("/api/customers/:id/orders", getCustomerOrders);
+app.post("/api/customers/seed", seedCustomerData);
 
-  // Orders routes
-  app.get("/api/orders", getAllOrders);
-  app.get("/api/orders/:id", getOrderById);
-  app.post("/api/orders", createOrder);
-  app.put("/api/orders/:id", updateOrder);
-  app.patch("/api/orders/:id/status", updateOrderStatus);
+// Order routes
+app.get("/api/orders", getAllOrders);
+app.get("/api/orders/:id", getOrderById);
+app.post("/api/orders", createOrder);
+app.put("/api/orders/:id", updateOrder);
+app.patch("/api/orders/:id/status", updateOrderStatus);
+app.delete("/api/orders/:id", deleteOrder);
+app.post("/api/orders/seed", seedOrderData);
 
-  // Customer routes
-  app.get("/api/customers", getAllCustomers);
-  app.get("/api/customers/pending-deliveries", getPendingDeliveries); // Specific route before parameterized
-  app.get("/api/customers/:id", getCustomerById);
-  app.post("/api/customers", createCustomer);
-  app.put("/api/customers/:id", updateCustomer);
-  app.delete("/api/customers/:id", deleteCustomer);
-  app.get("/api/customers/:id/orders", getCustomerOrders);
+// Analytics routes
+app.get("/api/analytics/dashboard", getDashboardAnalytics);
+app.get("/api/analytics/recent-orders", getRecentOrders);
+app.get("/api/analytics/low-stock", getLowStockAlerts);
 
-  // Settings routes
-  app.get("/api/settings", getSettings);
-  app.post("/api/settings", updateSettings);
-  app.post("/api/notifications/test-whatsapp", testWhatsAppNotification);
-  app.post("/api/notifications/low-stock", sendLowStockNotification);
-  app.post("/api/notifications/order-created", sendOrderCreatedNotification);
+// Settings routes
+app.get("/api/settings", getSettings);
+app.post("/api/settings", updateSettings);
+app.patch("/api/settings/currency", updateCurrency);
+app.get("/api/settings/business", getBusinessSettings);
+app.get("/api/settings/notifications", getNotificationSettings);
 
-  // Export placeholder routes
-  app.post("/api/export/:type", (_req, res) => {
-    res.json({ message: "Export functionality coming soon" });
+// Notification routes
+app.post("/api/notifications/test-whatsapp", testWhatsAppNotification);
+
+// Seed all data endpoint (for development)
+app.post("/api/seed-all", async (req, res) => {
+  try {
+    // Import services to trigger seeding
+    const { inventoryService } = await import("./services/inventoryService");
+    const { customerService } = await import("./services/customerService");
+    const { orderService } = await import("./services/orderService");
+
+    await inventoryService.seedInitialData();
+    await customerService.seedInitialData();
+    await orderService.seedInitialData();
+
+    res.json({
+      success: true,
+      message: "All data seeded successfully",
+    });
+  } catch (error) {
+    console.error("Error seeding all data:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to seed data",
+    });
+  }
+});
+
+// 404 handler
+app.use("*", (req, res) => {
+  res.status(404).json({
+    success: false,
+    error: `Route ${req.method} ${req.originalUrl} not found`,
   });
+});
 
-  return app;
-}
+// Error handler
+app.use((error: any, req: any, res: any, next: any) => {
+  console.error("Server error:", error);
+  res.status(500).json({
+    success: false,
+    error: "Internal server error",
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📊 Using Firebase Firestore as database`);
+  console.log(`🌐 API Base URL: http://localhost:${PORT}`);
+  console.log(`💾 Health check: http://localhost:${PORT}/health`);
+});
+
+export default app;
