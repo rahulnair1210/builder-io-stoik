@@ -18,12 +18,12 @@ export const getAllCustomers: RequestHandler = async (req, res) => {
           (sum, order) => sum + order.totalSelling,
           0,
         );
-        const orderCount = customerOrders.length;
+        const totalOrders = customerOrders.length;
 
         return {
           ...customer,
           totalSpent,
-          orderCount,
+          totalOrders,
         };
       }),
     );
