@@ -3,7 +3,9 @@ import { TShirt } from "@shared/types";
 import { MockDataStore } from "./mockDataService";
 
 export class InventoryService {
-  private collection = db.collection(COLLECTIONS.PRODUCTS);
+  private collection = isFirebaseAvailable
+    ? db.collection(COLLECTIONS.PRODUCTS)
+    : null;
 
   async getAllProducts(filters?: any): Promise<TShirt[]> {
     try {

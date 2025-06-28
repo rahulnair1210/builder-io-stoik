@@ -30,7 +30,9 @@ interface AppSettings {
 }
 
 export class SettingsService {
-  private collection = db.collection(COLLECTIONS.SETTINGS);
+  private collection = isFirebaseAvailable
+    ? db.collection(COLLECTIONS.SETTINGS)
+    : null;
   private docId = "app_settings"; // Single document for all settings
 
   async getSettings(): Promise<AppSettings> {

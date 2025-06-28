@@ -5,7 +5,9 @@ import { inventoryService } from "./inventoryService";
 import { MockDataStore } from "./mockDataService";
 
 export class OrderService {
-  private collection = db.collection(COLLECTIONS.ORDERS);
+  private collection = isFirebaseAvailable
+    ? db.collection(COLLECTIONS.ORDERS)
+    : null;
 
   async getAllOrders(filters?: any): Promise<Order[]> {
     try {

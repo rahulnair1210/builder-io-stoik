@@ -3,7 +3,9 @@ import { Customer } from "@shared/types";
 import { MockDataStore } from "./mockDataService";
 
 export class CustomerService {
-  private collection = db.collection(COLLECTIONS.CUSTOMERS);
+  private collection = isFirebaseAvailable
+    ? db.collection(COLLECTIONS.CUSTOMERS)
+    : null;
 
   async getAllCustomers(): Promise<Customer[]> {
     try {
