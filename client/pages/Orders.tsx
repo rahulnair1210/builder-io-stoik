@@ -90,6 +90,12 @@ export default function Orders() {
       const response = await fetch(`/api/orders?${queryParams}`);
       const data = await response.json();
 
+      if (!data.success) {
+        console.error("Orders API error:", data.error);
+        setOrders([]);
+        return;
+      }
+
       let filteredOrders = data.data || [];
 
       // Filter based on active tab
