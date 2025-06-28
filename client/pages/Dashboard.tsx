@@ -23,8 +23,10 @@ import { TopSellingItems } from "@/components/dashboard/TopSellingItems";
 import { RecentOrders } from "@/components/dashboard/RecentOrders";
 import { LowStockAlerts } from "@/components/dashboard/LowStockAlerts";
 import { Navigation } from "@/components/layout/Navigation";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function Dashboard() {
+  const { formatCurrency } = useCurrency();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -333,14 +335,14 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="Total Revenue"
-            value={`$${stats.orders.totalRevenue.toLocaleString()}`}
+            value={formatCurrency(stats.orders.totalRevenue)}
             icon={DollarSign}
             trend={12.5}
             className="border-l-4 border-l-primary"
           />
           <StatsCard
             title="Total Profit"
-            value={`$${stats.orders.totalProfit.toLocaleString()}`}
+            value={formatCurrency(stats.orders.totalProfit)}
             icon={TrendingUp}
             trend={8.2}
             className="border-l-4 border-l-accent"

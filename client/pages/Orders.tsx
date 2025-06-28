@@ -49,8 +49,10 @@ import { OrderDetailsDialog } from "@/components/orders/OrderDetailsDialog";
 import { EditOrderDialog } from "@/components/orders/EditOrderDialog";
 import { OrderCard } from "@/components/orders/OrderCard";
 import { NewOrderDialog } from "@/components/orders/NewOrderDialog";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function Orders() {
+  const { formatCurrency } = useCurrency();
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,16 +129,22 @@ export default function Orders() {
         );
 
         // Add notification for status update
+        const statusMessages = {
+          pending: "is now pending",
+          processing: "is being processed",
+          shipped: "has been shipped",
+          delivered: "has been delivered",
+          cancelled: "has been cancelled",
+        };
+
         window.dispatchEvent(
           new CustomEvent("addNotification", {
             detail: {
               type: "order_status",
-              message: `Order #${orderId} status changed to ${newStatus}`,
+              message: `Order #${orderId} ${statusMessages[newStatus] || `status changed to ${newStatus}`}`,
             },
           }),
         );
-      } else {
-        alert("Failed to update order status. Please try again.");
       }
     } catch (error) {
       console.error("Error updating order status:", error);
@@ -166,12 +174,10 @@ export default function Orders() {
           new CustomEvent("addNotification", {
             detail: {
               type: "order_update",
-              message: `Order #${orderId} has been updated successfully`,
+              message: `Order #${orderId} details have been updated`,
             },
           }),
         );
-      } else {
-        alert("Failed to update order. Please try again.");
       }
     } catch (error) {
       console.error("Error updating order:", error);
@@ -348,7 +354,7 @@ export default function Orders() {
                         Revenue
                       </p>
                       <p className="text-2xl font-bold">
-                        ${stats.totalRevenue.toLocaleString()}
+                        {formatCurrency(stats.totalRevenue)}
                       </p>
                     </div>
                     <DollarSign className="h-8 w-8 text-accent" />
@@ -363,7 +369,7 @@ export default function Orders() {
                         Profit
                       </p>
                       <p className="text-2xl font-bold text-accent">
-                        ${stats.totalProfit.toLocaleString()}
+                        {formatCurrency(stats.totalProfit)}
                       </p>
                     </div>
                     <DollarSign className="h-8 w-8 text-accent" />
@@ -478,12 +484,12 @@ export default function Orders() {
                           </TableCell>
                           <TableCell>
                             <span className="font-medium">
-                              ${order.totalSelling.toFixed(2)}
+                              {formatCurrency(order.totalSelling)}
                             </span>
                           </TableCell>
                           <TableCell>
                             <span className="font-medium text-accent">
-                              +${order.profit.toFixed(2)}
+                              +{formatCurrency(order.profit)}
                             </span>
                           </TableCell>
                           <TableCell>{getStatusBadge(order.status)}</TableCell>
@@ -628,7 +634,7 @@ export default function Orders() {
                         Total Revenue
                       </p>
                       <p className="text-2xl font-bold">
-                        ${bulkStats.totalRevenue.toLocaleString()}
+                        {formatCurrency(bulkStats.totalRevenue)}
                       </p>
                     </div>
                     <DollarSign className="h-8 w-8 text-accent" />
@@ -643,7 +649,7 @@ export default function Orders() {
                         Total Profit
                       </p>
                       <p className="text-2xl font-bold text-accent">
-                        ${bulkStats.totalProfit.toLocaleString()}
+                        {formatCurrency(bulkStats.totalProfit)}
                       </p>
                     </div>
                     <TrendingUp className="h-8 w-8 text-accent" />
@@ -658,7 +664,7 @@ export default function Orders() {
                         Avg Order Value
                       </p>
                       <p className="text-2xl font-bold">
-                        ${bulkStats.averageOrderValue.toFixed(0)}
+                        {formatCurrency(bulkStats.averageOrderValue)}
                       </p>
                     </div>
                     <Users className="h-8 w-8 text-slate-600" />
@@ -781,12 +787,12 @@ export default function Orders() {
                           </TableCell>
                           <TableCell>
                             <span className="font-medium">
-                              ${order.totalSelling.toFixed(2)}
+                              {formatCurrency(order.totalSelling)}
                             </span>
                           </TableCell>
                           <TableCell>
                             <span className="font-medium text-accent">
-                              +${order.profit.toFixed(2)}
+                              +{formatCurrency(order.profit)}
                             </span>
                           </TableCell>
                           <TableCell>{getStatusBadge(order.status)}</TableCell>

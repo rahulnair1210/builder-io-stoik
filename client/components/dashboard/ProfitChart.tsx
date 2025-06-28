@@ -9,6 +9,7 @@ import {
   Area,
   AreaChart,
 } from "recharts";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface ProfitChartProps {
   data: Array<{
@@ -19,7 +20,7 @@ interface ProfitChartProps {
 }
 
 export function ProfitChart({ data }: ProfitChartProps) {
-  const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
+  const { formatCurrency } = useCurrency();
 
   const formatMonth = (month: string) => {
     const date = new Date(month);

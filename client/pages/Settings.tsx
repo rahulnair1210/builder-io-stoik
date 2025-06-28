@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Navigation } from "@/components/layout/Navigation";
 import { Badge } from "@/components/ui/badge";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface NotificationSettings {
   lowStock: boolean;
@@ -52,6 +53,7 @@ interface BusinessSettings {
 }
 
 export default function Settings() {
+  const { setCurrency } = useCurrency();
   const [notifications, setNotifications] = useState<NotificationSettings>({
     lowStock: true,
     outOfStock: true,
@@ -517,9 +519,10 @@ export default function Settings() {
                     <Label htmlFor="currency">Currency</Label>
                     <Select
                       value={business.currency}
-                      onValueChange={(value) =>
-                        setBusiness({ ...business, currency: value })
-                      }
+                      onValueChange={(value) => {
+                        setBusiness({ ...business, currency: value });
+                        setCurrency(value);
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select currency" />
