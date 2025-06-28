@@ -19,10 +19,18 @@ export const getAllOrders: RequestHandler = async (req, res) => {
     const ordersWithCustomers = await Promise.all(
       orders.map(async (order) => {
         if (order.customerId) {
-          const customer = await customerService.getCustomerById(
-            order.customerId,
-          );
-          return { ...order, customer };
+          try {
+            const customer = await customerService.getCustomerById(
+              order.customerId,
+            );
+            return { ...order, customer };
+          } catch (error) {
+            console.warn(
+              `Customer ${order.customerId} not found for order ${order.id}`,
+            );
+            // Return order without customer info if customer not found
+            return { ...order, customer: null };
+          }
         }
         return order;
       }),
