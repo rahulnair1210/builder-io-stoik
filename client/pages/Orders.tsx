@@ -73,9 +73,16 @@ export default function Orders() {
     try {
       const response = await fetch("/api/customers");
       const data = await response.json();
-      setCustomers(data.data || []);
+
+      if (data.success) {
+        setCustomers(data.data || []);
+      } else {
+        console.error("Customers API error:", data.error);
+        setCustomers([]);
+      }
     } catch (error) {
       console.error("Error fetching customers:", error);
+      setCustomers([]);
     }
   };
 
