@@ -1,11 +1,45 @@
-import { db, COLLECTIONS } from "../config/firebase";
+import { db, isFirebaseAvailable, COLLECTIONS } from "../config/firebase";
 import { TShirt } from "@shared/types";
+import { MockDataStore } from "./mockDataService";
 
 export class InventoryService {
   private collection = db.collection(COLLECTIONS.PRODUCTS);
 
   async getAllProducts(filters?: any): Promise<TShirt[]> {
     try {
+      if (!isFirebaseAvailable) {
+        // Use mock data when Firebase is not available
+        let products = MockDataStore.getProducts();
+
+        // Apply filters to mock data
+        if (filters?.category && filters.category !== "all") {
+          products = products.filter((p) => p.category === filters.category);
+        }
+
+        if (filters?.stockStatus) {
+          if (filters.stockStatus === "low_stock") {
+            products = products.filter((p) => p.stockLevel <= 10);
+          } else if (filters.stockStatus === "out_of_stock") {
+            products = products.filter((p) => p.stockLevel === 0);
+          } else if (filters.stockStatus === "in_stock") {
+            products = products.filter((p) => p.stockLevel > 0);
+          }
+        }
+
+        if (filters?.search) {
+          const searchTerm = filters.search.toLowerCase();
+          products = products.filter(
+            (product) =>
+              product.name.toLowerCase().includes(searchTerm) ||
+              product.design.toLowerCase().includes(searchTerm) ||
+              product.color.toLowerCase().includes(searchTerm) ||
+              product.category.toLowerCase().includes(searchTerm),
+          );
+        }
+
+        return products;
+      }
+
       let query = this.collection;
 
       // Apply filters
@@ -51,6 +85,10 @@ export class InventoryService {
 
   async getProductById(id: string): Promise<TShirt | null> {
     try {
+      if (!isFirebaseAvailable) {
+        return MockDataStore.getProductById(id);
+      }
+
       const doc = await this.collection.doc(id).get();
       if (!doc.exists) {
         return null;
@@ -67,11 +105,16 @@ export class InventoryService {
   ): Promise<TShirt> {
     try {
       const now = new Date().toISOString();
-      const product: Omit<TShirt, "id"> = {
+      const product: TShirt = {
         ...productData,
+        id: !isFirebaseAvailable ? Date.now().toString() : "",
         createdAt: now,
         updatedAt: now,
       };
+
+      if (!isFirebaseAvailable) {
+        return MockDataStore.addProduct(product);
+      }
 
       const docRef = await this.collection.add(product);
       return { id: docRef.id, ...product };
@@ -90,6 +133,10 @@ export class InventoryService {
         ...updateData,
         updatedAt: new Date().toISOString(),
       };
+
+      if (!isFirebaseAvailable) {
+        return MockDataStore.updateProduct(id, updatedData);
+      }
 
       await this.collection.doc(id).update(updatedData);
 
@@ -129,6 +176,12 @@ export class InventoryService {
 
   async getLowStockProducts(): Promise<TShirt[]> {
     try {
+      if (!isFirebaseAvailable) {
+        return MockDataStore.getProducts()
+          .filter((p) => p.stockLevel <= 10)
+          .sort((a, b) => a.stockLevel - b.stockLevel);
+      }
+
       const snapshot = await this.collection
         .where("stockLevel", "<=", 10)
         .orderBy("stockLevel", "asc")
