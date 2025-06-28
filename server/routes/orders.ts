@@ -208,6 +208,65 @@ export const updateOrderStatus: RequestHandler = async (req, res) => {
   }
 };
 
+// Update payment status
+export const updatePaymentStatus: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentStatus, paymentMethod } = req.body;
+
+    if (!paymentStatus) {
+      return res.status(400).json({
+        success: false,
+        error: "Payment status is required",
+      });
+    }
+
+    const updateData: any = {
+      paymentStatus,
+    };
+
+    if (paymentMethod) {
+      updateData.paymentMethod = paymentMethod;
+    }
+
+    // Set payment date when marking as paid
+    if (paymentStatus === "paid") {
+      updateData.paymentDate = new Date().toISOString();
+    }
+
+    const order = await orderService.updateOrder(id, updateData);
+
+    // Populate customer information
+    let orderWithCustomer = order;
+    if (order && order.customerId) {
+      try {
+        const customer = await customerService.getCustomerById(
+          order.customerId,
+        );
+        orderWithCustomer = { ...order, customer };
+      } catch (error) {
+        console.warn(
+          `Customer ${order.customerId} not found for order ${order.id}`,
+        );
+        orderWithCustomer = { ...order, customer: null };
+      }
+    }
+
+    const response: ApiResponse<Order> = {
+      success: true,
+      data: orderWithCustomer,
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error in updatePaymentStatus:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update payment status",
+    });
+  }
+};
+
 // Delete order
 export const deleteOrder: RequestHandler = async (req, res) => {
   try {
