@@ -35,11 +35,18 @@ export function NewOrderDialog({
           const result = await response.json();
           if (result.success) {
             // Add success notification
+            const customerName =
+              customers.find((c) => c.id === selectedCustomer)?.name ||
+              "Unknown Customer";
+            const orderTotal = orderItems.reduce(
+              (sum, item) => sum + item.quantity * item.price,
+              0,
+            );
             window.dispatchEvent(
               new CustomEvent("addNotification", {
                 detail: {
-                  type: "order_created",
-                  message: `Order #${result.data.id} created successfully`,
+                  type: "new_order",
+                  message: `New order #${result.data.id} from ${customerName} - $${orderTotal.toFixed(2)}`,
                 },
               }),
             );
