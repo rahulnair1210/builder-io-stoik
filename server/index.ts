@@ -26,6 +26,7 @@ import {
   createOrder,
   updateOrder,
   updateOrderStatus,
+  updatePaymentStatus,
   deleteOrder,
   seedData as seedOrderData,
 } from "./routes/orders";
