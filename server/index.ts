@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
 import {
   getAllProducts,
   getProductById,
@@ -131,11 +132,32 @@ app.post("/api/seed-all", async (req, res) => {
   }
 });
 
-// 404 handler
-app.use("*", (req, res) => {
+// Serve static files for production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("dist/spa"));
+}
+
+// Handle client-side routing - serve index.html for non-API routes
+app.get("*", (req, res, next) => {
+  // Skip API routes
+  if (req.path.startsWith("/api/")) {
+    return next();
+  }
+
+  // For non-API routes, let the client handle routing
+  if (process.env.NODE_ENV === "production") {
+    res.sendFile(path.join(__dirname, "../spa/index.html"));
+  } else {
+    // In development, let Vite handle this
+    next();
+  }
+});
+
+// 404 handler for API routes only
+app.use("/api/*", (req, res) => {
   res.status(404).json({
     success: false,
-    error: `Route ${req.method} ${req.originalUrl} not found`,
+    error: `API route ${req.method} ${req.originalUrl} not found`,
   });
 });
 
