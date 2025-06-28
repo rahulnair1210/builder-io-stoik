@@ -150,6 +150,28 @@ export function OrderCard({
           <Badge variant="outline">{order.items.length} items</Badge>
         </div>
 
+        {/* Items List */}
+        <div className="mb-4 p-3 bg-slate-50 rounded-lg">
+          <h4 className="text-sm font-medium text-slate-700 mb-2">Items:</h4>
+          <div className="space-y-1">
+            {order.items.slice(0, 3).map((item, index) => (
+              <div key={index} className="flex justify-between text-xs">
+                <span className="text-slate-600 truncate flex-1 mr-2">
+                  {item.name || item.tshirt?.name || `Item ${index + 1}`}
+                </span>
+                <span className="text-slate-700 font-medium">
+                  {item.quantity}x
+                </span>
+              </div>
+            ))}
+            {order.items.length > 3 && (
+              <div className="text-xs text-slate-500 italic">
+                +{order.items.length - 3} more items...
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Order Details */}
         <div className="space-y-2 mb-4">
           <div className="flex justify-between text-sm">
