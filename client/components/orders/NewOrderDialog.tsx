@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { BulkOrderForm } from "@/components/customers/BulkOrderForm";
 import { Customer, Order } from "@shared/types";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface NewOrderDialogProps {
   open: boolean;
@@ -20,6 +21,8 @@ export function NewOrderDialog({
   onOpenChange,
   onOrderCreated,
 }: NewOrderDialogProps) {
+  const { formatCurrency } = useCurrency();
+
   return (
     <BulkOrderForm
       open={open}
@@ -32,21 +35,17 @@ export function NewOrderDialog({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(orderData),
           });
+
           const result = await response.json();
           if (result.success) {
             // Add success notification
-            const customerName =
-              customers.find((c) => c.id === selectedCustomer)?.name ||
-              "Unknown Customer";
-            const orderTotal = orderItems.reduce(
-              (sum, item) => sum + item.quantity * item.price,
-              0,
-            );
+            const orderTotal = result.data.totalSelling || 0;
+            const customerName = result.data.customer?.name || "customer";
             window.dispatchEvent(
               new CustomEvent("addNotification", {
                 detail: {
                   type: "new_order",
-                  message: `New order #${result.data.id} from ${customerName} - $${orderTotal.toFixed(2)}`,
+                  message: `New order #${result.data.id} from ${customerName} - ${formatCurrency(orderTotal)}`,
                 },
               }),
             );
@@ -58,6 +57,7 @@ export function NewOrderDialog({
           }
         } catch (error) {
           console.error("Error creating order:", error);
+          alert("Failed to create order. Please try again.");
         }
       }}
     />
