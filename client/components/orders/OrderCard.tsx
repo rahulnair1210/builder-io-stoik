@@ -35,6 +35,7 @@ export function OrderCard({
   onEdit,
   onUpdateStatus,
 }: OrderCardProps) {
+  const { formatCurrency } = useCurrency();
   const getStatusBadge = (status: Order["status"]) => {
     const variants = {
       pending: {

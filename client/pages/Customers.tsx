@@ -46,11 +46,13 @@ import { Navigation } from "@/components/layout/Navigation";
 import { CustomerForm } from "@/components/customers/CustomerForm";
 import { CustomerHistory } from "@/components/customers/CustomerHistory";
 import { BulkOrderForm } from "@/components/customers/BulkOrderForm";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function Customers() {
+  const { formatCurrency } = useCurrency();
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null,
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
   );
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -278,7 +280,7 @@ export default function Customers() {
                     Total Revenue
                   </p>
                   <p className="text-2xl font-bold">
-                    ${stats.totalRevenue.toLocaleString()}
+                    {formatCurrency(stats.totalRevenue)}
                   </p>
                 </div>
                 <ShoppingBag className="h-8 w-8 text-accent" />
@@ -380,7 +382,7 @@ export default function Customers() {
                               Total Spent
                             </p>
                             <p className="text-lg font-bold text-accent">
-                              ${customer.totalSpent.toLocaleString()}
+                              {formatCurrency(customer.totalSpent)}
                             </p>
                           </div>
 
@@ -485,7 +487,7 @@ export default function Customers() {
                   new CustomEvent("addNotification", {
                     detail: {
                       type: "bulk_order",
-                      message: `Bulk order #${result.data.id} created for ${selectedCustomer?.name || "customer"} - $${orderTotal.toFixed(2)}`,
+                      message: `Bulk order #${result.data.id} created for ${selectedCustomer?.name || "customer"} - ${formatCurrency(orderTotal)}`,
                     },
                   }),
                 );
