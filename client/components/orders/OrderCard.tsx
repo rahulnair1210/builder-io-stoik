@@ -21,6 +21,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { Order } from "@shared/types";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface OrderCardProps {
   order: Order;
