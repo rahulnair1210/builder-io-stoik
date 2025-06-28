@@ -90,6 +90,7 @@ app.get("/api/orders/:id", getOrderById);
 app.post("/api/orders", createOrder);
 app.put("/api/orders/:id", updateOrder);
 app.patch("/api/orders/:id/status", updateOrderStatus);
+app.patch("/api/orders/:id/payment", updatePaymentStatus);
 app.delete("/api/orders/:id", deleteOrder);
 app.post("/api/orders/seed", seedOrderData);
 
