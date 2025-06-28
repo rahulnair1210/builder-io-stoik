@@ -13,12 +13,18 @@ export class CustomerService {
         return MockDataStore.getCustomers();
       }
 
-      const snapshot = await this.collection.orderBy("createdAt", "desc").get();
-      const customers: Customer[] = [];
+      const snapshot = await this.collection.get();
+      let customers: Customer[] = [];
 
       snapshot.forEach((doc) => {
         customers.push({ id: doc.id, ...doc.data() } as Customer);
       });
+
+      // Sort by created date (newest first)
+      customers.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
 
       return customers;
     } catch (error) {

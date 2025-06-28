@@ -44,32 +44,32 @@ export class InventoryService {
 
       let query = this.collection;
 
-      // Apply filters
-      if (filters?.category && filters.category !== "all") {
-        query = query.where("category", "==", filters.category);
-      }
+      // Get all products first, then filter in memory to avoid index requirements
+      const snapshot = await this.collection.get();
 
-      if (filters?.stockStatus) {
-        if (filters.stockStatus === "low_stock") {
-          query = query.where("stockLevel", "<=", 10);
-        } else if (filters.stockStatus === "out_of_stock") {
-          query = query.where("stockLevel", "==", 0);
-        } else if (filters.stockStatus === "in_stock") {
-          query = query.where("stockLevel", ">", 0);
-        }
-      }
-
-      const snapshot = await query.orderBy("updatedAt", "desc").get();
-
-      const products: TShirt[] = [];
+      let products: TShirt[] = [];
       snapshot.forEach((doc) => {
         products.push({ id: doc.id, ...doc.data() } as TShirt);
       });
 
-      // Apply search filter on the client side since Firestore doesn't support text search
+      // Apply all filters in memory to avoid index requirements
+      if (filters?.category && filters.category !== "all") {
+        products = products.filter((p) => p.category === filters.category);
+      }
+
+      if (filters?.stockStatus) {
+        if (filters.stockStatus === "low_stock") {
+          products = products.filter((p) => p.stockLevel <= 10);
+        } else if (filters.stockStatus === "out_of_stock") {
+          products = products.filter((p) => p.stockLevel === 0);
+        } else if (filters.stockStatus === "in_stock") {
+          products = products.filter((p) => p.stockLevel > 0);
+        }
+      }
+
       if (filters?.search) {
         const searchTerm = filters.search.toLowerCase();
-        return products.filter(
+        products = products.filter(
           (product) =>
             product.name.toLowerCase().includes(searchTerm) ||
             product.design.toLowerCase().includes(searchTerm) ||
@@ -77,6 +77,12 @@ export class InventoryService {
             product.category.toLowerCase().includes(searchTerm),
         );
       }
+
+      // Sort by updated date (newest first)
+      products.sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      );
 
       return products;
     } catch (error) {
@@ -184,15 +190,18 @@ export class InventoryService {
           .sort((a, b) => a.stockLevel - b.stockLevel);
       }
 
-      const snapshot = await this.collection
-        .where("stockLevel", "<=", 10)
-        .orderBy("stockLevel", "asc")
-        .get();
+      const snapshot = await this.collection.get();
 
       const products: TShirt[] = [];
       snapshot.forEach((doc) => {
-        products.push({ id: doc.id, ...doc.data() } as TShirt);
+        const product = { id: doc.id, ...doc.data() } as TShirt;
+        if (product.stockLevel <= 10) {
+          products.push(product);
+        }
       });
+
+      // Sort by stock level (lowest first)
+      products.sort((a, b) => a.stockLevel - b.stockLevel);
 
       return products;
     } catch (error) {

@@ -41,30 +41,23 @@ export class OrderService {
         return orders;
       }
 
-      let query = this.collection;
-
-      // Apply filters
-      if (filters?.status && filters.status !== "all") {
-        query = query.where("status", "==", filters.status);
-      }
-
-      if (filters?.customerId) {
-        query = query.where("customerId", "==", filters.customerId);
-      }
-
-      if (filters?.minItems) {
-        // This filter will be applied on the client side since Firestore
-        // doesn't support array length queries easily
-      }
-
-      const snapshot = await query.orderBy("orderDate", "desc").get();
+      // Get all orders first, then filter in memory to avoid index requirements
+      const snapshot = await this.collection.get();
 
       let orders: Order[] = [];
       snapshot.forEach((doc) => {
         orders.push({ id: doc.id, ...doc.data() } as Order);
       });
 
-      // Apply additional filters
+      // Apply all filters in memory
+      if (filters?.status && filters.status !== "all") {
+        orders = orders.filter((o) => o.status === filters.status);
+      }
+
+      if (filters?.customerId) {
+        orders = orders.filter((o) => o.customerId === filters.customerId);
+      }
+
       if (filters?.search) {
         const searchTerm = filters.search.toLowerCase();
         orders = orders.filter(
@@ -79,6 +72,12 @@ export class OrderService {
         const minItems = parseInt(filters.minItems);
         orders = orders.filter((order) => order.items.length >= minItems);
       }
+
+      // Sort by order date (newest first)
+      orders.sort(
+        (a, b) =>
+          new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime(),
+      );
 
       return orders;
     } catch (error) {
@@ -228,15 +227,27 @@ export class OrderService {
 
   async getOrdersByCustomer(customerId: string): Promise<Order[]> {
     try {
-      const snapshot = await this.collection
-        .where("customerId", "==", customerId)
-        .orderBy("orderDate", "desc")
-        .get();
+      if (!isFirebaseAvailable) {
+        return MockDataStore.getOrders().filter(
+          (o) => o.customerId === customerId,
+        );
+      }
+
+      const snapshot = await this.collection.get();
 
       const orders: Order[] = [];
       snapshot.forEach((doc) => {
-        orders.push({ id: doc.id, ...doc.data() } as Order);
+        const order = { id: doc.id, ...doc.data() } as Order;
+        if (order.customerId === customerId) {
+          orders.push(order);
+        }
       });
+
+      // Sort by order date (newest first)
+      orders.sort(
+        (a, b) =>
+          new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime(),
+      );
 
       return orders;
     } catch (error) {
