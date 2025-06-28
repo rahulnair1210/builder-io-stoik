@@ -179,10 +179,19 @@ export class OrderService {
 
   async updateOrder(id: string, updateData: Partial<Order>): Promise<Order> {
     try {
-      const updatedData = {
+      const updatedData: any = {
         ...updateData,
         updatedAt: new Date().toISOString(),
       };
+
+      // Set payment date when payment status changes to "paid"
+      if (updateData.paymentStatus === "paid" && !updateData.paymentDate) {
+        updatedData.paymentDate = new Date().toISOString();
+      }
+
+      if (!isFirebaseAvailable) {
+        return MockDataStore.updateOrder(id, updatedData);
+      }
 
       await this.collection.doc(id).update(updatedData);
 
