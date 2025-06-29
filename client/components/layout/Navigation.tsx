@@ -180,8 +180,8 @@ export function Navigation() {
 
     fetchBadgeCounts();
 
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchBadgeCounts, 30000);
+    // Refresh every 60 seconds (increased from 30 to reduce frequency)
+    const interval = setInterval(fetchBadgeCounts, 60000);
     return () => clearInterval(interval);
   }, []);
 
