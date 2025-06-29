@@ -600,21 +600,33 @@ export default function Settings() {
                   <Label htmlFor="defaultMinStock">
                     Default Minimum Stock Level
                   </Label>
-                  <Input
-                    id="defaultMinStock"
-                    type="number"
-                    min="1"
-                    value={business.defaultMinStock}
-                    onChange={(e) =>
-                      setBusiness({
-                        ...business,
-                        defaultMinStock: parseInt(e.target.value) || 5,
-                      })
-                    }
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id="defaultMinStock"
+                      type="number"
+                      min="1"
+                      value={business.defaultMinStock}
+                      onChange={(e) =>
+                        setBusiness({
+                          ...business,
+                          defaultMinStock: parseInt(e.target.value) || 5,
+                        })
+                      }
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={handleBulkUpdateMinStock}
+                      disabled={bulkUpdating}
+                      variant="outline"
+                      className="shrink-0"
+                    >
+                      {bulkUpdating ? "Updating..." : "Apply to All"}
+                    </Button>
+                  </div>
                   <p className="text-sm text-slate-600 mt-1">
                     This will be the default minimum stock level for new
-                    products
+                    products. Click "Apply to All" to update all existing
+                    inventory items.
                   </p>
                 </div>
               </CardContent>
