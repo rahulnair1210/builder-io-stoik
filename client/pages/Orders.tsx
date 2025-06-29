@@ -156,6 +156,8 @@ export default function Orders() {
     orderId: string,
     newStatus: Order["status"],
   ) => {
+    const originalOrder = orders.find((o) => o.id === orderId);
+
     // Update UI immediately for responsive feel
     setOrders(
       orders.map((order) =>
@@ -200,15 +202,19 @@ export default function Orders() {
           ),
         );
       } else {
-        // Revert on failure
+        // Revert to original state without full refresh
         console.error("Status update failed, reverting:", data.error);
-        fetchOrders(); // Refresh to get correct state
+        if (originalOrder) {
+          setOrders(orders.map((o) => (o.id === orderId ? originalOrder : o)));
+        }
         alert("Failed to update order status. Please try again.");
       }
     } catch (error) {
       console.error("Error updating order status:", error);
-      // Revert on error
-      fetchOrders(); // Refresh to get correct state
+      // Revert to original state without full refresh
+      if (originalOrder) {
+        setOrders(orders.map((o) => (o.id === orderId ? originalOrder : o)));
+      }
       alert("Failed to update order status. Please try again.");
     }
   };
