@@ -228,6 +228,30 @@ export default function Orders() {
     }
   };
 
+  const handlePaymentUpdate = async (
+    orderId: string,
+    paymentStatus: Order["paymentStatus"],
+  ) => {
+    // Update local state immediately for responsive UI
+    setOrders(
+      orders.map((order) =>
+        order.id === orderId
+          ? { ...order, paymentStatus, paymentDate: new Date().toISOString() }
+          : order,
+      ),
+    );
+
+    // Add notification
+    window.dispatchEvent(
+      new CustomEvent("addNotification", {
+        detail: {
+          type: "payment_update",
+          message: `Payment marked as ${paymentStatus} for Order #${orderId}`,
+        },
+      }),
+    );
+  };
+
   const getStatusBadge = (status: Order["status"]) => {
     const variants = {
       pending: {
