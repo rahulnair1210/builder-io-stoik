@@ -245,21 +245,50 @@ export default function Inventory() {
                   <DialogTitle>Add New Product</DialogTitle>
                 </DialogHeader>
                 <ProductForm
+                  product={selectedProduct}
                   onSubmit={async (data) => {
                     try {
-                      const response = await fetch("/api/inventory", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(data),
-                      });
-                      const result = await response.json();
-                      setProducts([...products, result.data]);
-                      setShowProductForm(false);
+                      if (selectedProduct) {
+                        // Edit existing product
+                        const response = await fetch(
+                          `/api/inventory/${selectedProduct.id}`,
+                          {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(data),
+                          },
+                        );
+                        const result = await response.json();
+                        if (result.success) {
+                          setProducts(
+                            products.map((p) =>
+                              p.id === selectedProduct.id ? result.data : p,
+                            ),
+                          );
+                          setShowProductForm(false);
+                          setSelectedProduct(null);
+                        }
+                      } else {
+                        // Create new product
+                        const response = await fetch("/api/inventory", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(data),
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                          setProducts([result.data, ...products]);
+                          setShowProductForm(false);
+                        }
+                      }
                     } catch (error) {
-                      console.error("Error creating product:", error);
+                      console.error("Error saving product:", error);
                     }
                   }}
-                  onCancel={() => setShowProductForm(false)}
+                  onCancel={() => {
+                    setShowProductForm(false);
+                    setSelectedProduct(null);
+                  }}
                 />
               </DialogContent>
             </Dialog>
