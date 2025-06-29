@@ -106,6 +106,8 @@ export default function Inventory() {
   };
 
   const handleStockUpdate = async (id: string, newStock: number) => {
+    const originalProduct = products.find((p) => p.id === id);
+
     // Update UI immediately for responsive feel
     setProducts(
       products.map((product) =>
@@ -129,8 +131,10 @@ export default function Inventory() {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Stock update failed:", errorData.error);
-        // Revert on failure
-        fetchProducts();
+        // Revert to original state without full refresh
+        if (originalProduct) {
+          setProducts(products.map((p) => (p.id === id ? originalProduct : p)));
+        }
         alert(`Failed to update stock: ${errorData.error}`);
         return;
       }
@@ -144,14 +148,18 @@ export default function Inventory() {
         );
       } else {
         console.error("Stock update failed:", data.error);
-        // Revert on failure
-        fetchProducts();
+        // Revert to original state without full refresh
+        if (originalProduct) {
+          setProducts(products.map((p) => (p.id === id ? originalProduct : p)));
+        }
         alert(`Failed to update stock: ${data.error}`);
       }
     } catch (error) {
       console.error("Error updating stock:", error);
-      // Revert on error
-      fetchProducts();
+      // Revert to original state without full refresh
+      if (originalProduct) {
+        setProducts(products.map((p) => (p.id === id ? originalProduct : p)));
+      }
       alert("Failed to update stock. Please try again.");
     }
   };
