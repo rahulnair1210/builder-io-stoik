@@ -126,8 +126,9 @@ export function Navigation() {
     },
   ];
 
-  // Function to fetch badge counts
-  const fetchBadgeCounts = async () => {
+  // Fetch badge counts on component mount and periodically
+  useEffect(() => {
+    const fetchBadgeCounts = async () => {
       try {
         // Fetch pending orders count
         const ordersResponse = await fetch("/api/orders?status=pending");
@@ -176,6 +177,7 @@ export function Navigation() {
         });
       }
     };
+
     fetchBadgeCounts();
 
     // Refresh every 30 seconds
