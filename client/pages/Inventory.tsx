@@ -240,9 +240,11 @@ export default function Inventory() {
                   Add Product
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Add New Product</DialogTitle>
+                  <DialogTitle>
+                    {selectedProduct ? "Edit Product" : "Add New Product"}
+                  </DialogTitle>
                 </DialogHeader>
                 <ProductForm
                   product={selectedProduct}
