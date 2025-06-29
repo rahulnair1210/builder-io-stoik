@@ -20,11 +20,13 @@ export class InventoryService {
 
         if (filters?.stockStatus) {
           if (filters.stockStatus === "low_stock") {
-            products = products.filter((p) => p.stockLevel <= 10);
+            products = products.filter(
+              (p) => p.stockLevel <= p.minStockLevel && p.stockLevel > 0,
+            );
           } else if (filters.stockStatus === "out_of_stock") {
             products = products.filter((p) => p.stockLevel === 0);
           } else if (filters.stockStatus === "in_stock") {
-            products = products.filter((p) => p.stockLevel > 0);
+            products = products.filter((p) => p.stockLevel > p.minStockLevel);
           }
         }
 
