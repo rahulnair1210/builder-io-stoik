@@ -258,8 +258,10 @@ export function OrderCard({
                       );
                       const data = await response.json();
                       if (data.success) {
-                        // Trigger a refresh of the parent component
-                        window.location.reload();
+                        // Update immediately via callback
+                        if (onPaymentUpdate) {
+                          onPaymentUpdate(order.id, "paid");
+                        }
                       } else {
                         console.error("Payment update failed:", data.error);
                         alert(
