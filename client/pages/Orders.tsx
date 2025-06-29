@@ -156,6 +156,34 @@ export default function Orders() {
     orderId: string,
     newStatus: Order["status"],
   ) => {
+    // Update UI immediately for responsive feel
+    setOrders(
+      orders.map((order) =>
+        order.id === orderId
+          ? { ...order, status: newStatus, updatedAt: new Date().toISOString() }
+          : order,
+      ),
+    );
+
+    // Add notification immediately
+    const statusMessages = {
+      pending: "is now pending",
+      processing: "is being processed",
+      shipped: "has been shipped",
+      delivered: "has been delivered",
+      cancelled: "has been cancelled",
+    };
+
+    window.dispatchEvent(
+      new CustomEvent("addNotification", {
+        detail: {
+          type: "order_status",
+          message: `Order #${orderId} ${statusMessages[newStatus] || `status changed to ${newStatus}`}`,
+        },
+      }),
+    );
+
+    // Then sync with server
     try {
       const response = await fetch(`/api/orders/${orderId}/status`, {
         method: "PATCH",
@@ -165,32 +193,22 @@ export default function Orders() {
       const data = await response.json();
 
       if (data.success) {
+        // Update with server response to ensure consistency
         setOrders(
           orders.map((order) =>
             order.id === orderId ? { ...order, ...data.data } : order,
           ),
         );
-
-        // Add notification for status update
-        const statusMessages = {
-          pending: "is now pending",
-          processing: "is being processed",
-          shipped: "has been shipped",
-          delivered: "has been delivered",
-          cancelled: "has been cancelled",
-        };
-
-        window.dispatchEvent(
-          new CustomEvent("addNotification", {
-            detail: {
-              type: "order_status",
-              message: `Order #${orderId} ${statusMessages[newStatus] || `status changed to ${newStatus}`}`,
-            },
-          }),
-        );
+      } else {
+        // Revert on failure
+        console.error("Status update failed, reverting:", data.error);
+        fetchOrders(); // Refresh to get correct state
+        alert("Failed to update order status. Please try again.");
       }
     } catch (error) {
       console.error("Error updating order status:", error);
+      // Revert on error
+      fetchOrders(); // Refresh to get correct state
       alert("Failed to update order status. Please try again.");
     }
   };
