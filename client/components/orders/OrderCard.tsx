@@ -28,6 +28,10 @@ interface OrderCardProps {
   onViewDetails: (order: Order) => void;
   onEdit: (order: Order) => void;
   onUpdateStatus: (orderId: string, status: Order["status"]) => void;
+  onPaymentUpdate?: (
+    orderId: string,
+    paymentStatus: Order["paymentStatus"],
+  ) => void;
 }
 
 export function OrderCard({
