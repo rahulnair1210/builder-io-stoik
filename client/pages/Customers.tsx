@@ -200,6 +200,7 @@ export default function Customers() {
                   <DialogTitle>Add New Customer</DialogTitle>
                 </DialogHeader>
                 <CustomerForm
+                  customer={selectedCustomer}
                   onSubmit={async (data) => {
                     try {
                       const response = await fetch("/api/customers", {
