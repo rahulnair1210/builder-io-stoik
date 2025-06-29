@@ -126,9 +126,8 @@ export function Navigation() {
     },
   ];
 
-  // Fetch badge counts on component mount and periodically
-  useEffect(() => {
-    const fetchBadgeCounts = async () => {
+  // Function to fetch badge counts
+  const fetchBadgeCounts = async () => {
       try {
         // Fetch pending orders count
         const ordersResponse = await fetch("/api/orders?status=pending");
