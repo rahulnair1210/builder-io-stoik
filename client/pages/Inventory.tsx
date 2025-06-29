@@ -241,18 +241,24 @@ export default function Inventory() {
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
-            <Dialog open={showProductForm} onOpenChange={setShowProductForm}>
-              <DialogTrigger asChild>
-                <Button
-                  onClick={() => {
-                    setSelectedProduct(null);
-                    setShowProductForm(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Product
-                </Button>
-              </DialogTrigger>
+            <Button
+              onClick={() => {
+                setSelectedProduct(null);
+                setShowProductForm(true);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+            <Dialog
+              open={showProductForm}
+              onOpenChange={(open) => {
+                setShowProductForm(open);
+                if (!open) {
+                  setSelectedProduct(null);
+                }
+              }}
+            >
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
