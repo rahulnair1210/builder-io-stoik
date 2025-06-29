@@ -193,6 +193,35 @@ export const getLowStockProducts: RequestHandler = async (req, res) => {
   }
 };
 
+// Bulk update minimum stock level for all products
+export const bulkUpdateMinStock: RequestHandler = async (req, res) => {
+  try {
+    const { minStockLevel } = req.body;
+
+    if (typeof minStockLevel !== "number" || minStockLevel < 1) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid minimum stock level",
+      });
+    }
+
+    const result = await inventoryService.bulkUpdateMinStock(minStockLevel);
+
+    const response: ApiResponse<{ updatedCount: number }> = {
+      success: true,
+      data: result,
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error in bulkUpdateMinStock:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to bulk update minimum stock levels",
+    });
+  }
+};
+
 // Seed initial data (for development)
 export const seedData: RequestHandler = async (req, res) => {
   try {
@@ -208,7 +237,7 @@ export const seedData: RequestHandler = async (req, res) => {
     console.error("Error in seedData:", error);
     res.status(500).json({
       success: false,
-      error: "Failed to seed data",
+      error: "Failed to seed inventory data",
     });
   }
 };
