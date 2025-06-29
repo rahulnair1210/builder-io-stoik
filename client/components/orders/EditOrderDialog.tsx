@@ -43,7 +43,7 @@ export function EditOrderDialog({
   const [saving, setSaving] = useState(false);
 
   // Update form data when order changes
-  useState(() => {
+  useEffect(() => {
     if (order) {
       setFormData({
         status: order.status,
