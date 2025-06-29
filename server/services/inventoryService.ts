@@ -217,6 +217,42 @@ export class InventoryService {
     }
   }
 
+  async bulkUpdateMinStock(
+    minStockLevel: number,
+  ): Promise<{ updatedCount: number }> {
+    try {
+      if (!isFirebaseAvailable) {
+        const products = MockDataStore.getProducts();
+        let updatedCount = 0;
+
+        products.forEach((product) => {
+          MockDataStore.updateProduct(product.id, { minStockLevel });
+          updatedCount++;
+        });
+
+        return { updatedCount };
+      }
+
+      const snapshot = await this.collection.get();
+      const batch = db.batch();
+      let updatedCount = 0;
+
+      snapshot.forEach((doc) => {
+        batch.update(doc.ref, {
+          minStockLevel,
+          updatedAt: new Date().toISOString(),
+        });
+        updatedCount++;
+      });
+
+      await batch.commit();
+      return { updatedCount };
+    } catch (error) {
+      console.error("Error bulk updating minimum stock levels:", error);
+      throw error;
+    }
+  }
+
   // Seed initial data for development
   async seedInitialData(): Promise<void> {
     try {
