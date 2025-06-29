@@ -9,6 +9,7 @@ import {
   deleteProduct,
   updateStock,
   getLowStockProducts,
+  bulkUpdateMinStock,
   seedData as seedInventoryData,
 } from "./routes/inventory";
 import {
