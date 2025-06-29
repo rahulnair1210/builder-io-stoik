@@ -188,18 +188,24 @@ export default function Customers() {
               <Package className="h-4 w-4 mr-2" />
               Bulk Order
             </Button>
-            <Dialog open={showCustomerForm} onOpenChange={setShowCustomerForm}>
-              <DialogTrigger asChild>
-                <Button
-                  onClick={() => {
-                    setSelectedCustomer(null);
-                    setShowCustomerForm(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Customer
-                </Button>
-              </DialogTrigger>
+            <Button
+              onClick={() => {
+                setSelectedCustomer(null);
+                setShowCustomerForm(true);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Customer
+            </Button>
+            <Dialog
+              open={showCustomerForm}
+              onOpenChange={(open) => {
+                setShowCustomerForm(open);
+                if (!open) {
+                  setSelectedCustomer(null);
+                }
+              }}
+            >
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>
