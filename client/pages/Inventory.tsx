@@ -235,7 +235,12 @@ export default function Inventory() {
             </Button>
             <Dialog open={showProductForm} onOpenChange={setShowProductForm}>
               <DialogTrigger asChild>
-                <Button>
+                <Button
+                  onClick={() => {
+                    setSelectedProduct(null);
+                    setShowProductForm(true);
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Product
                 </Button>
