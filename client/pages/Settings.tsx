@@ -79,6 +79,39 @@ export default function Settings() {
 
   const [loading, setLoading] = useState(false);
   const [bulkUpdating, setBulkUpdating] = useState(false);
+
+  const handleBulkUpdateMinStock = async () => {
+    if (
+      !confirm(
+        `Are you sure you want to update ALL inventory items to have a minimum stock level of ${business.defaultMinStock}?`,
+      )
+    ) {
+      return;
+    }
+
+    setBulkUpdating(true);
+    try {
+      const response = await fetch("/api/inventory/bulk-update-min-stock", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ minStockLevel: business.defaultMinStock }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert(
+          `Successfully updated ${result.data.updatedCount} products with minimum stock level of ${business.defaultMinStock}`,
+        );
+      } else {
+        alert("Failed to update inventory. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error updating inventory:", error);
+      alert("Failed to update inventory. Please try again.");
+    } finally {
+      setBulkUpdating(false);
+    }
+  };
   const [testingWhatsApp, setTestingWhatsApp] = useState(false);
 
   useEffect(() => {
