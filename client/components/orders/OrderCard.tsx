@@ -39,6 +39,7 @@ export function OrderCard({
   onViewDetails,
   onEdit,
   onUpdateStatus,
+  onPaymentUpdate,
 }: OrderCardProps) {
   const { formatCurrency } = useCurrency();
   const getStatusBadge = (status: Order["status"]) => {
