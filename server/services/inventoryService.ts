@@ -190,7 +190,7 @@ export class InventoryService {
     try {
       if (!isFirebaseAvailable) {
         return MockDataStore.getProducts()
-          .filter((p) => p.stockLevel <= 10)
+          .filter((p) => p.stockLevel <= p.minStockLevel && p.stockLevel > 0)
           .sort((a, b) => a.stockLevel - b.stockLevel);
       }
 
@@ -199,7 +199,10 @@ export class InventoryService {
       const products: TShirt[] = [];
       snapshot.forEach((doc) => {
         const product = { id: doc.id, ...doc.data() } as TShirt;
-        if (product.stockLevel <= 10) {
+        if (
+          product.stockLevel <= product.minStockLevel &&
+          product.stockLevel > 0
+        ) {
           products.push(product);
         }
       });
