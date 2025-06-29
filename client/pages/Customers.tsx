@@ -197,7 +197,9 @@ export default function Customers() {
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Add New Customer</DialogTitle>
+                  <DialogTitle>
+                    {selectedCustomer ? "Edit Customer" : "Add New Customer"}
+                  </DialogTitle>
                 </DialogHeader>
                 <CustomerForm
                   customer={selectedCustomer}
