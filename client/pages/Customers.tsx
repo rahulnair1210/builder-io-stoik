@@ -190,7 +190,12 @@ export default function Customers() {
             </Button>
             <Dialog open={showCustomerForm} onOpenChange={setShowCustomerForm}>
               <DialogTrigger asChild>
-                <Button>
+                <Button
+                  onClick={() => {
+                    setSelectedCustomer(null);
+                    setShowCustomerForm(true);
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Customer
                 </Button>
