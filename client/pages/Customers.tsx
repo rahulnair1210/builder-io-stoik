@@ -180,15 +180,26 @@ export default function Customers() {
                       });
                       const result = await response.json();
                       if (result.success) {
+                        // Add customer immediately to UI
+                        setCustomers([result.data, ...customers]);
                         setShowCustomerForm(false);
                         setSelectedCustomer(null);
-                        // Refresh data to ensure consistency
-                        await fetchCustomers();
+
+                        // Show success notification
+                        window.dispatchEvent(
+                          new CustomEvent("addNotification", {
+                            detail: {
+                              type: "customer_created",
+                              message: `Customer ${result.data.name} has been created successfully`,
+                            },
+                          }),
+                        );
                       } else {
                         alert("Failed to create customer. Please try again.");
                       }
                     } catch (error) {
                       console.error("Error creating customer:", error);
+                      alert("Failed to create customer. Please try again.");
                     }
                   }}
                   onCancel={() => {
