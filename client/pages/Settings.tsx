@@ -77,7 +77,8 @@ export default function Settings() {
     defaultMinStock: 5,
   });
 
-  const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [bulkUpdating, setBulkUpdating] = useState(false);
   const [testingWhatsApp, setTestingWhatsApp] = useState(false);
 
   useEffect(() => {
