@@ -652,6 +652,7 @@ export default function Orders() {
                           setShowEditOrder(true);
                         }}
                         onUpdateStatus={updateOrderStatus}
+                        onPaymentUpdate={handlePaymentUpdate}
                       />
                     ))}
                   </div>
