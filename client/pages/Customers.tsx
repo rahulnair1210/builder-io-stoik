@@ -90,11 +90,40 @@ export default function Customers() {
   const handleDeleteCustomer = async (id: string) => {
     if (!confirm("Are you sure you want to delete this customer?")) return;
 
+    const customerToDelete = customers.find((c) => c.id === id);
+
+    // Remove from UI immediately
+    setCustomers(customers.filter((c) => c.id !== id));
+
+    // Show notification
+    window.dispatchEvent(
+      new CustomEvent("addNotification", {
+        detail: {
+          type: "customer_deleted",
+          message: `Customer ${customerToDelete?.name || id} has been deleted`,
+        },
+      }),
+    );
+
     try {
-      await fetch(`/api/customers/${id}`, { method: "DELETE" });
-      setCustomers(customers.filter((c) => c.id !== id));
+      const response = await fetch(`/api/customers/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        // Revert on failure
+        if (customerToDelete) {
+          setCustomers([...customers, customerToDelete]);
+        }
+        alert("Failed to delete customer. Please try again.");
+      }
     } catch (error) {
       console.error("Error deleting customer:", error);
+      // Revert on error
+      if (customerToDelete) {
+        setCustomers([...customers, customerToDelete]);
+      }
+      alert("Failed to delete customer. Please try again.");
     }
   };
 
