@@ -242,6 +242,16 @@ export default function Inventory() {
               Export
             </Button>
             <Button
+              variant="outline"
+              onClick={() => {
+                setLoading(true);
+                fetchProducts();
+              }}
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+            <Button
               onClick={() => {
                 setSelectedProduct(null);
                 setShowProductForm(true);
