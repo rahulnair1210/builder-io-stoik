@@ -270,7 +270,21 @@ export default function Inventory() {
                   onSubmit={async (data) => {
                     try {
                       if (selectedProduct) {
-                        // Edit existing product
+                        // Edit existing product - update UI immediately
+                        const updatedProduct = {
+                          ...selectedProduct,
+                          ...data,
+                          updatedAt: new Date().toISOString(),
+                        };
+                        setProducts(
+                          products.map((p) =>
+                            p.id === selectedProduct.id ? updatedProduct : p,
+                          ),
+                        );
+                        setShowProductForm(false);
+                        setSelectedProduct(null);
+
+                        // Then sync with server
                         const response = await fetch(
                           `/api/inventory/${selectedProduct.id}`,
                           {
@@ -279,15 +293,34 @@ export default function Inventory() {
                             body: JSON.stringify(data),
                           },
                         );
+
+                        if (!response.ok) {
+                          // Revert on failure
+                          setProducts(
+                            products.map((p) =>
+                              p.id === selectedProduct.id ? selectedProduct : p,
+                            ),
+                          );
+                          alert("Failed to update product. Changes reverted.");
+                          return;
+                        }
+
                         const result = await response.json();
                         if (result.success) {
+                          // Update with server response
                           setProducts(
                             products.map((p) =>
                               p.id === selectedProduct.id ? result.data : p,
                             ),
                           );
-                          setShowProductForm(false);
-                          setSelectedProduct(null);
+                        } else {
+                          // Revert on failure
+                          setProducts(
+                            products.map((p) =>
+                              p.id === selectedProduct.id ? selectedProduct : p,
+                            ),
+                          );
+                          alert("Failed to update product. Changes reverted.");
                         }
                       } else {
                         // Create new product
@@ -300,10 +333,22 @@ export default function Inventory() {
                         if (result.success) {
                           setProducts([result.data, ...products]);
                           setShowProductForm(false);
+                        } else {
+                          alert("Failed to create product. Please try again.");
                         }
                       }
                     } catch (error) {
                       console.error("Error saving product:", error);
+                      alert("Failed to save product. Please try again.");
+
+                      // If it was an edit, revert to original
+                      if (selectedProduct) {
+                        setProducts(
+                          products.map((p) =>
+                            p.id === selectedProduct.id ? selectedProduct : p,
+                          ),
+                        );
+                      }
                     }
                   }}
                   onCancel={() => {
