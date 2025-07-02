@@ -146,6 +146,7 @@ export interface FilterOptions {
   minPrice?: number;
   maxPrice?: number;
   stockStatus?: "in_stock" | "low_stock" | "out_of_stock";
+  status?: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   dateRange?: {
     start: string;
     end: string;
