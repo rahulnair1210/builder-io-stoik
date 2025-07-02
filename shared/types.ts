@@ -70,6 +70,7 @@ export interface OrderItem {
   id: string;
   tshirtId: string;
   tshirt?: TShirt;
+  name?: string; // Product name for display
   quantity: number;
   unitCost: number;
   unitSelling: number;
