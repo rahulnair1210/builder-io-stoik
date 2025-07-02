@@ -333,11 +333,13 @@ export default function Orders() {
   };
 
   const getBulkOrderStats = () => {
-    const bulkOrders = orders.filter(
-      (order) =>
-        order.items.length >= 2 ||
-        order.items.some((item) => item.quantity >= 5),
-    );
+    const bulkOrders = orders.filter((order) => {
+      const totalQuantity = order.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      );
+      return totalQuantity >= 20;
+    });
 
     return {
       totalOrders: bulkOrders.length,
