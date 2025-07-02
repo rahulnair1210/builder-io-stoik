@@ -1,45 +1,60 @@
 import "./global.css";
-
-import { Toaster } from "@/components/ui/toaster";
 import { createRoot } from "react-dom/client";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { CurrencyProvider } from "./context/CurrencyContext";
-import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import Inventory from "./pages/Inventory";
-import Orders from "./pages/Orders";
-import Customers from "./pages/Customers";
-import Photos from "./pages/Photos";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
-const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <CurrencyProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/photos" element={<Photos />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/setup" element={<Index />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </CurrencyProvider>
-  </QueryClientProvider>
-);
+// Simple test component to verify React is working
+const TestApp = () => {
+  return (
+    <div
+      style={{
+        padding: "20px",
+        backgroundColor: "white",
+        color: "black",
+        minHeight: "100vh",
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
+      <h1 style={{ color: "blue", fontSize: "24px" }}>
+        🚀 React App is Working!
+      </h1>
+      <p>This is a test to verify React is loading properly.</p>
+      <button
+        onClick={() => alert("React events are working!")}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#007bff",
+          color: "white",
+          border: "none",
+          borderRadius: "4px",
+          cursor: "pointer",
+        }}
+      >
+        Test Button
+      </button>
+      <div
+        style={{
+          marginTop: "20px",
+          padding: "10px",
+          backgroundColor: "#f0f8ff",
+          border: "1px solid #007bff",
+        }}
+      >
+        <strong>Debug Info:</strong>
+        <ul>
+          <li>React is mounting ✅</li>
+          <li>JavaScript is executing ✅</li>
+          <li>Styles are loading ✅</li>
+          <li>Port 8080 is working ✅</li>
+        </ul>
+      </div>
+    </div>
+  );
+};
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Mount the test app
+const rootElement = document.getElementById("root");
+if (rootElement) {
+  const root = createRoot(rootElement);
+  root.render(<TestApp />);
+} else {
+  console.error("Root element not found!");
+}
