@@ -472,11 +472,11 @@ export function BulkOrderForm({
                     Bulk Order Validation
                   </h4>
                   <p className="text-sm text-slate-600">
-                    Total Quantity: {totals.itemCount} items
+                    Total Quantity: {totals.totalQuantity} items
                   </p>
                 </div>
                 <div>
-                  {totals.itemCount >= 20 ? (
+                  {totals.totalQuantity >= 20 ? (
                     <Badge className="bg-green-100 text-green-800">
                       ✓ Qualifies as Bulk Order
                     </Badge>
@@ -485,7 +485,7 @@ export function BulkOrderForm({
                       variant="outline"
                       className="text-orange-700 border-orange-200"
                     >
-                      ⚠ Need {20 - totals.itemCount} more for bulk
+                      ⚠ Need {20 - totals.totalQuantity} more for bulk
                     </Badge>
                   )}
                 </div>
@@ -501,25 +501,23 @@ export function BulkOrderForm({
                 <h3 className="text-lg font-medium">Order Summary</h3>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-3 bg-slate-50 rounded-lg">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-primary/10 rounded-lg">
+                  <p className="text-sm text-slate-600">Total Amount</p>
                   <p className="text-xl font-bold text-primary">
                     {formatCurrency(totals.totalSelling)}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-slate-600">Profit</p>
-                  <p className="text-xl font-bold text-accent">
-                    {formatCurrency(totals.profit)}
-                  </p>
-                  <p className="text-xl font-bold text-primary">
-                    ${totals.totalSelling.toFixed(2)}
                   </p>
                 </div>
                 <div className="text-center p-3 bg-accent/10 rounded-lg">
                   <p className="text-sm text-slate-600">Profit</p>
                   <p className="text-xl font-bold text-accent">
-                    ${totals.profit.toFixed(2)}
+                    {formatCurrency(totals.profit)}
+                  </p>
+                </div>
+                <div className="text-center p-3 bg-slate-50 rounded-lg">
+                  <p className="text-sm text-slate-600">Items</p>
+                  <p className="text-xl font-bold text-slate-900">
+                    {totals.totalQuantity}
                   </p>
                 </div>
               </div>
@@ -596,7 +594,10 @@ export function BulkOrderForm({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || totals.itemCount === 0}>
+            <Button
+              type="submit"
+              disabled={loading || totals.totalQuantity === 0}
+            >
               <ShoppingCart className="h-4 w-4 mr-2" />
               {loading
                 ? "Creating Order..."
