@@ -261,16 +261,20 @@ export function BulkOrderForm({
                     <SelectValue placeholder="Choose a customer..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        <div className="flex items-center justify-between w-full">
-                          <span>{customer.name}</span>
-                          <span className="text-sm text-slate-500 ml-2">
-                            {customer.email}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                    {customers
+                      .filter(
+                        (customer) => customer.id && customer.id.trim() !== "",
+                      )
+                      .map((customer) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          <div className="flex items-center justify-between w-full">
+                            <span>{customer.name}</span>
+                            <span className="text-sm text-slate-500 ml-2">
+                              {customer.email}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
