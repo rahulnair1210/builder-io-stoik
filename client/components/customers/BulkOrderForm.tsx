@@ -334,10 +334,22 @@ export function BulkOrderForm({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">Order Items</h3>
-              <Button type="button" variant="outline" onClick={addOrderItem}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Item
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={fetchProducts}
+                  title="Refresh product list"
+                >
+                  <Package className="h-4 w-4 mr-1" />
+                  Refresh Products
+                </Button>
+                <Button type="button" variant="outline" onClick={addOrderItem}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Item
+                </Button>
+              </div>
             </div>
 
             {orderItems.map((item, index) => (
