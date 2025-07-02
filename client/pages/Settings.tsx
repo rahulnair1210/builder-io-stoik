@@ -78,6 +78,7 @@ export default function Settings() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [bulkUpdating, setBulkUpdating] = useState(false);
 
   const handleBulkUpdateMinStock = async () => {
