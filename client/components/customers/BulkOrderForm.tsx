@@ -463,6 +463,36 @@ export function BulkOrderForm({
             ))}
           </div>
 
+          {/* Quantity Validation */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-slate-900">
+                    Bulk Order Validation
+                  </h4>
+                  <p className="text-sm text-slate-600">
+                    Total Quantity: {totals.itemCount} items
+                  </p>
+                </div>
+                <div>
+                  {totals.itemCount >= 20 ? (
+                    <Badge className="bg-green-100 text-green-800">
+                      ✓ Qualifies as Bulk Order
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="text-orange-700 border-orange-200"
+                    >
+                      ⚠ Need {20 - totals.itemCount} more for bulk
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Order Summary */}
           <Card>
             <CardContent className="p-4">
