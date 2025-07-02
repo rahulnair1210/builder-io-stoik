@@ -77,55 +77,11 @@ export function ProfitChart({ data }: ProfitChartProps) {
             tickFormatter={formatMonth}
             stroke="#64748b"
             fontSize={12}
-            axisLine={true}
-            tickLine={true}
-            type="category"
-            allowDecimals={true}
-            allowDuplicatedCategory={true}
-            angle={0}
-            hide={false}
-            includeHidden={false}
-            mirror={false}
-            orientation="bottom"
-            reversed={false}
-            scale="auto"
-            tickMargin={5}
-            unit=""
-            interval="preserveStartEnd"
-            minTickGap={5}
-            padding={{ left: 0, right: 0 }}
-            tick={{ fontSize: 12 }}
-            tickSize={6}
-            width={0}
-            height={30}
           />
           <YAxis
             tickFormatter={formatCurrency}
             stroke="#64748b"
             fontSize={12}
-            axisLine={true}
-            tickLine={true}
-            type="number"
-            allowDecimals={true}
-            allowDuplicatedCategory={true}
-            angle={0}
-            hide={false}
-            includeHidden={false}
-            mirror={false}
-            orientation="left"
-            reversed={false}
-            scale="auto"
-            tickMargin={5}
-            unit=""
-            yAxisId={0}
-            interval="preserveStartEnd"
-            minTickGap={5}
-            padding={{ top: 0, bottom: 0 }}
-            tick={{ fontSize: 12 }}
-            tickSize={6}
-            width={60}
-            height={0}
-            domain={["auto", "auto"]}
           />
           <Tooltip
             content={({ active, payload, label }) => {
