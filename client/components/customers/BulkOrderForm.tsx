@@ -329,31 +329,37 @@ export function BulkOrderForm({
                           <SelectValue placeholder="Select a product" />
                         </SelectTrigger>
                         <SelectContent>
-                          {products.map((product) => (
-                            <SelectItem
-                              key={product.id}
-                              value={product.id}
-                              disabled={product.stockLevel === 0}
-                            >
-                              <div className="flex items-center gap-2">
-                                {product.name} - {product.size} {product.color}
-                                <Badge variant="outline">
-                                  ${product.sellingPrice}
-                                </Badge>
-                                <Badge
-                                  variant={
-                                    product.stockLevel > 0
-                                      ? "secondary"
-                                      : "destructive"
-                                  }
-                                >
-                                  {product.stockLevel === 0
-                                    ? "Out of Stock"
-                                    : `${product.stockLevel} in stock`}
-                                </Badge>
-                              </div>
-                            </SelectItem>
-                          ))}
+                          {products
+                            .filter(
+                              (product) =>
+                                product.id && product.id.trim() !== "",
+                            )
+                            .map((product) => (
+                              <SelectItem
+                                key={product.id}
+                                value={product.id}
+                                disabled={product.stockLevel === 0}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {product.name} - {product.size}{" "}
+                                  {product.color}
+                                  <Badge variant="outline">
+                                    ${product.sellingPrice}
+                                  </Badge>
+                                  <Badge
+                                    variant={
+                                      product.stockLevel > 0
+                                        ? "secondary"
+                                        : "destructive"
+                                    }
+                                  >
+                                    {product.stockLevel === 0
+                                      ? "Out of Stock"
+                                      : `${product.stockLevel} in stock`}
+                                  </Badge>
+                                </div>
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </div>
