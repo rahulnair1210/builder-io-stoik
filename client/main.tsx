@@ -1,60 +1,83 @@
 import "./global.css";
-import { createRoot } from "react-dom/client";
 
-// Simple test component to verify React is working
-const TestApp = () => {
-  return (
-    <div
-      style={{
-        padding: "20px",
-        backgroundColor: "white",
-        color: "black",
-        minHeight: "100vh",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <h1 style={{ color: "blue", fontSize: "24px" }}>
-        🚀 React App is Working!
-      </h1>
-      <p>This is a test to verify React is loading properly.</p>
-      <button
-        onClick={() => alert("React events are working!")}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#007bff",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
-      >
-        Test Button
-      </button>
-      <div
-        style={{
-          marginTop: "20px",
-          padding: "10px",
-          backgroundColor: "#f0f8ff",
-          border: "1px solid #007bff",
-        }}
-      >
-        <strong>Debug Info:</strong>
-        <ul>
-          <li>React is mounting ✅</li>
-          <li>JavaScript is executing ✅</li>
-          <li>Styles are loading ✅</li>
-          <li>Port 8080 is working ✅</li>
-        </ul>
-      </div>
-    </div>
-  );
+import { Toaster } from "@/components/ui/toaster";
+import { createRoot } from "react-dom/client";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { CurrencyProvider } from "./context/CurrencyContext";
+
+// Import pages with error boundaries
+import Dashboard from "./pages/Dashboard";
+import Inventory from "./pages/Inventory";
+import Orders from "./pages/Orders";
+import Customers from "./pages/Customers";
+import Settings from "./pages/Settings";
+
+const queryClient = new QueryClient();
+
+// Error boundary component
+const ErrorFallback = ({ error }: { error: Error }) => (
+  <div
+    style={{
+      padding: "20px",
+      backgroundColor: "white",
+      color: "red",
+      minHeight: "100vh",
+      fontFamily: "Arial, sans-serif",
+    }}
+  >
+    <h1>⚠️ App Error</h1>
+    <p>Something went wrong: {error.message}</p>
+    <button onClick={() => window.location.reload()}>Reload App</button>
+  </div>
+);
+
+const App = () => {
+  try {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <CurrencyProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/inventory" element={<Inventory />} />
+                <Route path="/orders" element={<Orders />} />
+                <Route path="/customers" element={<Customers />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<Dashboard />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </CurrencyProvider>
+      </QueryClientProvider>
+    );
+  } catch (error) {
+    return <ErrorFallback error={error as Error} />;
+  }
 };
 
-// Mount the test app
+// Mount the app with error handling
 const rootElement = document.getElementById("root");
 if (rootElement) {
-  const root = createRoot(rootElement);
-  root.render(<TestApp />);
+  try {
+    const root = createRoot(rootElement);
+    root.render(<App />);
+  } catch (error) {
+    console.error("Failed to mount React app:", error);
+    rootElement.innerHTML = `
+      <div style="padding: 20px; background: white; color: red; font-family: Arial;">
+        <h1>❌ React Mount Error</h1>
+        <p>Failed to start the app: ${error}</p>
+        <button onclick="window.location.reload()">Reload</button>
+      </div>
+    `;
+  }
 } else {
   console.error("Root element not found!");
 }
