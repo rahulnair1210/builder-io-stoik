@@ -83,11 +83,17 @@ export function BulkOrderForm({
 
   const fetchProducts = async () => {
     try {
+      console.log("Fetching products for order form...");
       const response = await fetch("/api/inventory");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
+      console.log("Fetched products:", data.data?.length || 0, "items");
       setProducts(data.data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
+      // Don't clear products on error to maintain existing state
     }
   };
 
