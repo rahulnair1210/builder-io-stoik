@@ -404,11 +404,11 @@ export default function Orders() {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
-            <TabsTrigger value="all">All Orders</TabsTrigger>
-            <TabsTrigger value="bulk">Bulk Orders</TabsTrigger>
+            <TabsTrigger value="retail">Retail Orders (&lt;20 qty)</TabsTrigger>
+            <TabsTrigger value="bulk">Bulk Orders (20+ qty)</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="space-y-6">
+          <TabsContent value="retail" className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
