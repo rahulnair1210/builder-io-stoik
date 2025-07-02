@@ -66,6 +66,17 @@ export function BulkOrderForm({
     }
   }, [open]);
 
+  // Force refresh products every time dialog opens to show newly added inventory
+  useEffect(() => {
+    if (open) {
+      // Small delay to ensure any pending inventory updates are complete
+      const timer = setTimeout(() => {
+        fetchProducts();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+
   useEffect(() => {
     setSelectedCustomer(customer);
   }, [customer]);
