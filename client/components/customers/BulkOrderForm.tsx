@@ -163,6 +163,18 @@ export function BulkOrderForm({
       return;
     }
 
+    // Validate minimum quantity for bulk orders (20+)
+    const totalQuantity = validItems.reduce(
+      (sum, item) => sum + item.quantity,
+      0,
+    );
+    if (totalQuantity < 20) {
+      alert(
+        `Bulk orders require a minimum total quantity of 20 items. Current total: ${totalQuantity}. Please increase quantities or this will be classified as a retail order.`,
+      );
+      return;
+    }
+
     // Check stock availability for all items
     const stockErrors = [];
     for (const item of validItems) {
