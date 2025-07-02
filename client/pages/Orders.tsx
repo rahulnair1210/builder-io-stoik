@@ -822,7 +822,7 @@ export default function Orders() {
                     <Package className="h-12 w-12 mx-auto mb-3 text-slate-300" />
                     <p className="text-lg font-medium">No Bulk Orders Found</p>
                     <p className="text-sm">
-                      Bulk orders are orders with 2+ items or quantities of 5+
+                      Bulk orders require a total quantity of 20 or more items
                     </p>
                   </div>
                 ) : (
