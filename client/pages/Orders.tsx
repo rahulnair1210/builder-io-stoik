@@ -62,7 +62,7 @@ export default function Orders() {
   const [showEditOrder, setShowEditOrder] = useState(false);
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("retail");
 
   useEffect(() => {
     fetchOrders();
