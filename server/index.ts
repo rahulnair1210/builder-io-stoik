@@ -75,6 +75,7 @@ app.delete("/api/inventory/:id", deleteProduct);
 app.patch("/api/inventory/:id/stock", updateStock);
 app.get("/api/inventory/alerts/low-stock", getLowStockProducts);
 app.patch("/api/inventory/bulk-update-min-stock", bulkUpdateMinStock);
+app.post("/api/inventory/cleanup-ids", cleanupEmptyIds);
 app.post("/api/inventory/seed", seedInventoryData);
 
 // Customer routes
