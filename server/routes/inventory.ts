@@ -5,6 +5,11 @@ import { inventoryService } from "../services/inventoryService";
 // Get all products with filtering
 export const getAllProducts: RequestHandler = async (req, res) => {
   try {
+    // Auto-cleanup empty IDs on first request
+    if (req.query.cleanup !== "false") {
+      await inventoryService.cleanupEmptyIds();
+    }
+
     const filters = {
       search: req.query.search as string,
       category: req.query.category as string,
