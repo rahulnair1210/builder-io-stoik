@@ -5,20 +5,27 @@ import { createRoot } from "react-dom/client";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CurrencyProvider } from "./context/CurrencyContext";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, ErrorBoundary } from "react";
 
-// Lazy load pages for better performance
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Inventory = lazy(() => import("./pages/Inventory"));
-const Orders = lazy(() => import("./pages/Orders"));
-const Customers = lazy(() => import("./pages/Customers"));
-const Settings = lazy(() => import("./pages/Settings"));
+// Import pages directly for better reliability
+import Dashboard from "./pages/Dashboard";
+import Inventory from "./pages/Inventory";
+import Orders from "./pages/Orders";
+import Customers from "./pages/Customers";
+import Settings from "./pages/Settings";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-// Loading component
+// Enhanced loading component
 const LoadingFallback = () => (
   <div
     style={{
@@ -29,21 +36,24 @@ const LoadingFallback = () => (
       backgroundColor: "#f8fafc",
       fontFamily: "Inter, Arial, sans-serif",
       flexDirection: "column",
-      gap: "16px",
+      gap: "20px",
     }}
   >
     <div
       style={{
-        width: "40px",
-        height: "40px",
-        border: "4px solid #e2e8f0",
-        borderTop: "4px solid #2196F3",
+        width: "50px",
+        height: "50px",
+        border: "5px solid #e2e8f0",
+        borderTop: "5px solid #2196F3",
         borderRadius: "50%",
         animation: "spin 1s linear infinite",
       }}
     ></div>
-    <p style={{ color: "#64748b", fontSize: "16px" }}>
-      Loading T-Shirt Inventory...
+    <h2 style={{ color: "#1e293b", fontSize: "24px", margin: "0" }}>
+      T-Shirt Inventory System
+    </h2>
+    <p style={{ color: "#64748b", fontSize: "16px", margin: "0" }}>
+      Loading Dashboard...
     </p>
     <style>{`
       @keyframes spin {
@@ -54,8 +64,14 @@ const LoadingFallback = () => (
   </div>
 );
 
-// Error boundary component
-const ErrorFallback = ({ error }: { error: Error }) => (
+// Enhanced error boundary component
+const ErrorFallback = ({
+  error,
+  resetError,
+}: {
+  error: Error;
+  resetError?: () => void;
+}) => (
   <div
     style={{
       padding: "40px",
@@ -70,33 +86,82 @@ const ErrorFallback = ({ error }: { error: Error }) => (
       gap: "20px",
     }}
   >
-    <div style={{ fontSize: "48px" }}>⚠️</div>
-    <h1 style={{ fontSize: "24px", margin: "0", color: "#1e293b" }}>
-      App Error
+    <div style={{ fontSize: "64px" }}>⚠️</div>
+    <h1 style={{ fontSize: "28px", margin: "0", color: "#1e293b" }}>
+      T-Shirt Inventory System Error
     </h1>
-    <p style={{ margin: "0", textAlign: "center", maxWidth: "600px" }}>
-      Something went wrong: {error.message}
-    </p>
-    <button
-      onClick={() => window.location.reload()}
+    <p
       style={{
-        padding: "12px 24px",
-        backgroundColor: "#2196F3",
-        color: "white",
-        border: "none",
-        borderRadius: "8px",
-        cursor: "pointer",
-        fontSize: "16px",
+        margin: "0",
+        textAlign: "center",
+        maxWidth: "600px",
+        fontSize: "18px",
       }}
     >
-      Reload App
-    </button>
+      Something went wrong while loading the dashboard: {error.message}
+    </p>
+    <div style={{ display: "flex", gap: "15px" }}>
+      <button
+        onClick={() => (window.location.href = "/")}
+        style={{
+          padding: "12px 24px",
+          backgroundColor: "#2196F3",
+          color: "white",
+          border: "none",
+          borderRadius: "8px",
+          cursor: "pointer",
+          fontSize: "16px",
+          fontWeight: "600",
+        }}
+      >
+        Go to Dashboard
+      </button>
+      <button
+        onClick={() => window.location.reload()}
+        style={{
+          padding: "12px 24px",
+          backgroundColor: "#4CAF50",
+          color: "white",
+          border: "none",
+          borderRadius: "8px",
+          cursor: "pointer",
+          fontSize: "16px",
+          fontWeight: "600",
+        }}
+      >
+        Reload App
+      </button>
+    </div>
   </div>
 );
 
+// Simple error boundary class component
+class AppErrorBoundary extends ErrorBoundary {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error("App Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <ErrorFallback error={new Error("Application failed to load")} />;
+    }
+
+    return this.props.children;
+  }
+}
+
 const App = () => {
-  try {
-    return (
+  return (
+    <AppErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <CurrencyProvider>
           <TooltipProvider>
@@ -111,17 +176,15 @@ const App = () => {
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/customers" element={<Customers />} />
                   <Route path="/settings" element={<Settings />} />
-                  <Route path="*" element={<Dashboard />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
             </BrowserRouter>
           </TooltipProvider>
         </CurrencyProvider>
       </QueryClientProvider>
-    );
-  } catch (error) {
-    return <ErrorFallback error={error as Error} />;
-  }
+    </AppErrorBoundary>
+  );
 };
 
 // Show initial loading state immediately
@@ -130,21 +193,21 @@ if (rootElement) {
   // Show loading state immediately
   rootElement.innerHTML = `
     <div style="
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      min-height: 100vh; 
-      background-color: #f8fafc; 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: #f8fafc;
       font-family: Inter, Arial, sans-serif;
       flex-direction: column;
       gap: 16px;
     ">
       <div style="
-        width: 40px; 
-        height: 40px; 
-        border: 4px solid #e2e8f0; 
-        border-top: 4px solid #2196F3; 
-        border-radius: 50%; 
+        width: 40px;
+        height: 40px;
+        border: 4px solid #e2e8f0;
+        border-top: 4px solid #2196F3;
+        border-radius: 50%;
         animation: spin 1s linear infinite;
       "></div>
       <p style="color: #64748b; font-size: 16px;">Loading T-Shirt Inventory...</p>
@@ -164,9 +227,9 @@ if (rootElement) {
     console.error("Failed to mount React app:", error);
     rootElement.innerHTML = `
       <div style="
-        padding: 40px; 
-        background: white; 
-        color: #ef4444; 
+        padding: 40px;
+        background: white;
+        color: #ef4444;
         font-family: Inter, Arial, sans-serif;
         min-height: 100vh;
         display: flex;
@@ -196,9 +259,9 @@ if (rootElement) {
   console.error("Root element not found!");
   document.body.innerHTML = `
     <div style="
-      padding: 40px; 
-      background: white; 
-      color: #ef4444; 
+      padding: 40px;
+      background: white;
+      color: #ef4444;
       font-family: Arial, sans-serif;
       min-height: 100vh;
       display: flex;
