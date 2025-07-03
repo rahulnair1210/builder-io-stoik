@@ -198,6 +198,26 @@ export const getLowStockProducts: RequestHandler = async (req, res) => {
   }
 };
 
+// Cleanup empty IDs in Firestore documents
+export const cleanupEmptyIds: RequestHandler = async (req, res) => {
+  try {
+    await inventoryService.cleanupEmptyIds();
+
+    const response: ApiResponse<{ message: string }> = {
+      success: true,
+      data: { message: "Successfully cleaned up documents with empty IDs" },
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error in cleanupEmptyIds:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to cleanup empty IDs",
+    });
+  }
+};
+
 // Bulk update minimum stock level for all products
 export const bulkUpdateMinStock: RequestHandler = async (req, res) => {
   try {
