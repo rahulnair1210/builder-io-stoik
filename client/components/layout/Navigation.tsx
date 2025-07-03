@@ -130,12 +130,17 @@ export function Navigation() {
   useEffect(() => {
     const fetchBadgeCounts = async () => {
       try {
-        // Fetch pending orders count
-        const ordersResponse = await fetch("/api/orders?status=pending");
+        // Fetch non-delivered orders count (pending, processing, shipped)
+        const ordersResponse = await fetch("/api/orders");
         let ordersCount = 0;
         if (ordersResponse.ok) {
           const ordersData = await ordersResponse.json();
-          ordersCount = ordersData.data?.length || 0;
+          // Count orders that are not delivered or cancelled
+          ordersCount =
+            ordersData.data?.filter(
+              (order: any) =>
+                order.status !== "delivered" && order.status !== "cancelled",
+            ).length || 0;
         }
 
         // Fetch low stock items count
