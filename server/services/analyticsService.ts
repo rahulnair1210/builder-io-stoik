@@ -85,7 +85,7 @@ export class AnalyticsService {
     const monthlyData: { [key: string]: { profit: number; revenue: number } } =
       {};
 
-    // Get last 6 months
+    // Get last 6 months including current month
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -93,23 +93,40 @@ export class AnalyticsService {
       monthlyData[monthKey] = { profit: 0, revenue: 0 };
     }
 
+    console.log("Monthly data initialized:", Object.keys(monthlyData));
+
     // Aggregate order data by month
     orders.forEach((order) => {
-      const orderDate = new Date(order.orderDate);
-      const monthKey = orderDate.toISOString().slice(0, 7);
+      try {
+        const orderDate = new Date(order.orderDate);
+        const monthKey = orderDate.toISOString().slice(0, 7);
 
-      if (monthlyData[monthKey]) {
-        monthlyData[monthKey].profit += order.profit;
-        monthlyData[monthKey].revenue += order.totalSelling;
+        console.log(
+          `Processing order ${order.id}: date=${order.orderDate}, monthKey=${monthKey}, profit=${order.profit}, revenue=${order.totalSelling}`,
+        );
+
+        // Include data for any month where we have orders, not just the last 6 months
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { profit: 0, revenue: 0 };
+        }
+
+        monthlyData[monthKey].profit += order.profit || 0;
+        monthlyData[monthKey].revenue += order.totalSelling || 0;
+      } catch (error) {
+        console.error("Error processing order date:", order.orderDate, error);
       }
     });
 
-    // Convert to array format
-    return Object.entries(monthlyData).map(([month, data]) => ({
-      month,
-      profit: data.profit,
-      revenue: data.revenue,
-    }));
+    console.log("Final monthly data:", monthlyData);
+
+    // Convert to array format and sort by month
+    return Object.entries(monthlyData)
+      .map(([month, data]) => ({
+        month,
+        profit: Math.round(data.profit * 100) / 100, // Round to 2 decimal places
+        revenue: Math.round(data.revenue * 100) / 100,
+      }))
+      .sort((a, b) => a.month.localeCompare(b.month));
   }
 
   private calculateTopSellingItems(
