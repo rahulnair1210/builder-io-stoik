@@ -143,9 +143,9 @@ export function Navigation() {
             ).length || 0;
         }
 
-        // Fetch low stock items count
+        // Fetch out-of-stock items count
         const inventoryResponse = await fetch(
-          "/api/inventory?stockStatus=low_stock",
+          "/api/inventory?stockStatus=out_of_stock",
         );
         let inventoryCount = 0;
         if (inventoryResponse.ok) {
