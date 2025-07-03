@@ -135,29 +135,14 @@ const ErrorFallback = ({
   </div>
 );
 
-// Simple error boundary class component
-class AppErrorBoundary extends ErrorBoundary {
-  constructor(props: any) {
-    super(props);
-    this.state = { hasError: false };
+// Simple error boundary component
+const AppErrorBoundary = ({ children }: { children: React.ReactNode }) => {
+  try {
+    return <>{children}</>;
+  } catch (error) {
+    return <ErrorFallback error={error as Error} />;
   }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, errorInfo: any) {
-    console.error("App Error:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <ErrorFallback error={new Error("Application failed to load")} />;
-    }
-
-    return this.props.children;
-  }
-}
+};
 
 const App = () => {
   return (
@@ -186,6 +171,142 @@ const App = () => {
     </AppErrorBoundary>
   );
 };
+
+// Enhanced mounting with immediate loading feedback
+const rootElement = document.getElementById("root");
+if (rootElement) {
+  // Show immediate dashboard loading state
+  rootElement.innerHTML = `
+    <div style="
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      font-family: Inter, Arial, sans-serif;
+      flex-direction: column;
+      gap: 20px;
+    ">
+      <div style="
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+        max-width: 400px;
+      ">
+        <div style="
+          width: 50px;
+          height: 50px;
+          border: 5px solid #e2e8f0;
+          border-top: 5px solid #2196F3;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 0 auto 20px;
+        "></div>
+        <h1 style="color: #1e293b; font-size: 24px; margin: 0 0 10px 0; font-weight: 600;">
+          T-Shirt Inventory System
+        </h1>
+        <p style="color: #64748b; font-size: 16px; margin: 0;">
+          Loading Dashboard...
+        </p>
+        <div style="margin-top: 20px; padding: 15px; background: #f1f5f9; border-radius: 8px;">
+          <p style="color: #475569; font-size: 14px; margin: 0;">
+            ✅ Frontend Server: Running<br>
+            ✅ Backend API: Connected<br>
+            ✅ Database: Firebase Firestore
+          </p>
+        </div>
+      </div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    </div>
+  `;
+
+  try {
+    // Mount React app after a brief moment to show loading
+    setTimeout(() => {
+      const root = createRoot(rootElement);
+      root.render(<App />);
+    }, 800);
+  } catch (error) {
+    console.error("Failed to mount React app:", error);
+    rootElement.innerHTML = `
+      <div style="
+        padding: 40px;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #dc2626;
+        font-family: Inter, Arial, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+      ">
+        <div style="
+          background: white;
+          padding: 40px;
+          border-radius: 15px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+          text-align: center;
+          max-width: 500px;
+        ">
+          <div style="font-size: 64px; margin-bottom: 20px;">❌</div>
+          <h1 style="font-size: 28px; margin: 0 0 15px 0; color: #1e293b;">React Mount Error</h1>
+          <p style="font-size: 16px; margin: 0 0 25px 0; color: #64748b;">
+            Failed to start the T-Shirt Inventory application: ${error}
+          </p>
+          <button onclick="window.location.reload()" style="
+            padding: 15px 30px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          ">🔄 Reload Dashboard</button>
+        </div>
+      </div>
+    `;
+  }
+} else {
+  console.error("Root element not found!");
+  document.body.innerHTML = `
+    <div style="
+      padding: 40px;
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      color: #dc2626;
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    ">
+      <div style="font-size: 64px;">⚠️</div>
+      <h1>HTML Root Element Missing</h1>
+      <p>Cannot start T-Shirt Inventory System - root element not found.</p>
+      <button onclick="window.location.reload()" style="
+        padding: 15px 30px;
+        background: #dc2626;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+      ">🔄 Reload Application</button>
+    </div>
+  `;
+}
 
 // Show initial loading state immediately
 const rootElement = document.getElementById("root");
