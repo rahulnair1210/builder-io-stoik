@@ -53,7 +53,7 @@ interface BusinessSettings {
 }
 
 export default function Settings() {
-  const { setCurrency } = useCurrency();
+  const { setCurrency, refreshCurrency } = useCurrency();
   const [notifications, setNotifications] = useState<NotificationSettings>({
     lowStock: true,
     outOfStock: true,
@@ -145,8 +145,9 @@ export default function Settings() {
       });
 
       if (response.ok) {
-        // Show success message
+        // Show success message and refresh currency
         console.log("Settings saved successfully");
+        refreshCurrency();
       }
     } catch (error) {
       console.error("Error saving settings:", error);
