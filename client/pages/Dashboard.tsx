@@ -442,6 +442,9 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Recent Retail Orders */}
+        <RecentRetailOrders />
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <RecentOrders />
           <LowStockAlerts />
