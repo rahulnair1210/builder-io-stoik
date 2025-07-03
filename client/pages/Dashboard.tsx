@@ -21,6 +21,7 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ProfitChart } from "@/components/dashboard/ProfitChart";
 import { TopSellingItems } from "@/components/dashboard/TopSellingItems";
 import { RecentOrders } from "@/components/dashboard/RecentOrders";
+import { RecentRetailOrders } from "@/components/dashboard/RecentRetailOrders";
 import { LowStockAlerts } from "@/components/dashboard/LowStockAlerts";
 import { Navigation } from "@/components/layout/Navigation";
 import { useCurrency } from "@/context/CurrencyContext";
