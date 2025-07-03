@@ -52,7 +52,7 @@ export function LowStockAlerts() {
 
   const getStockStatus = (item: TShirt) => {
     if (item.stockLevel === 0) return "out_of_stock";
-    if (item.stockLevel <= item.minStockLevel) return "low_stock";
+    if (item.stockLevel <= 8) return "low_stock";
     return "in_stock";
   };
 
