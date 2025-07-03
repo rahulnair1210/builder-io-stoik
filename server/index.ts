@@ -10,6 +10,7 @@ import {
   updateStock,
   getLowStockProducts,
   bulkUpdateMinStock,
+  cleanupEmptyIds,
   seedData as seedInventoryData,
 } from "./routes/inventory";
 import {
