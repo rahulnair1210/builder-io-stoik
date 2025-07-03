@@ -23,20 +23,44 @@ export function ProfitChart({ data }: ProfitChartProps) {
   const { formatCurrency } = useCurrency();
 
   const formatMonth = (month: string) => {
-    const date = new Date(month);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      year: "2-digit",
-    });
+    try {
+      // Handle both YYYY-MM format and full date strings
+      const date =
+        month.includes("-") && month.length === 7
+          ? new Date(month + "-01")
+          : new Date(month);
+
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        year: "2-digit",
+      });
+    } catch (error) {
+      console.error("Error formatting month:", month, error);
+      return month;
+    }
   };
 
+  // Handle empty or invalid data
   if (!data || data.length === 0) {
     return (
       <div className="h-80 flex items-center justify-center text-slate-500">
-        No data available
+        <div className="text-center">
+          <p className="text-lg font-medium">No profit data available</p>
+          <p className="text-sm mt-1">
+            Complete some orders to see profit trends
+          </p>
+        </div>
       </div>
     );
   }
+
+  // Ensure data is properly formatted
+  const validData = data.filter(
+    (item) =>
+      item.month &&
+      typeof item.profit === "number" &&
+      typeof item.revenue === "number",
+  );
 
   return (
     <div className="h-80">
