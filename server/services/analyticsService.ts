@@ -30,8 +30,7 @@ export class AnalyticsService {
       // Calculate inventory statistics
       const totalItems = products.length;
       const lowStockItems = products.filter(
-        (product) =>
-          product.stockLevel <= product.minStockLevel && product.stockLevel > 0,
+        (product) => product.stockLevel <= 8 && product.stockLevel > 0,
       ).length;
       const outOfStockItems = products.filter(
         (product) => product.stockLevel === 0,
