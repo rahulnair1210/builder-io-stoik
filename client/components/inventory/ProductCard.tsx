@@ -32,7 +32,7 @@ export function ProductCard({
 }: ProductCardProps) {
   const getStockStatus = () => {
     if (product.stockLevel === 0) return "out_of_stock";
-    if (product.stockLevel <= product.minStockLevel) return "low_stock";
+    if (product.stockLevel <= 8) return "low_stock";
     return "in_stock";
   };
 
