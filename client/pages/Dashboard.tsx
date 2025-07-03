@@ -315,6 +315,20 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-2">
             <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchDashboardStats}
+              disabled={loading}
+              className="flex items-center gap-2"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <BarChart3 className="h-4 w-4" />
+              )}
+              Refresh Data
+            </Button>
+            <Button
               onClick={exportAllData}
               disabled={exporting}
               variant="outline"
