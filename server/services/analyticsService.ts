@@ -93,17 +93,11 @@ export class AnalyticsService {
       monthlyData[monthKey] = { profit: 0, revenue: 0 };
     }
 
-    console.log("Monthly data initialized:", Object.keys(monthlyData));
-
     // Aggregate order data by month
     orders.forEach((order) => {
       try {
         const orderDate = new Date(order.orderDate);
         const monthKey = orderDate.toISOString().slice(0, 7);
-
-        console.log(
-          `Processing order ${order.id}: date=${order.orderDate}, monthKey=${monthKey}, profit=${order.profit}, revenue=${order.totalSelling}`,
-        );
 
         // Include data for any month where we have orders, not just the last 6 months
         if (!monthlyData[monthKey]) {
@@ -116,8 +110,6 @@ export class AnalyticsService {
         console.error("Error processing order date:", order.orderDate, error);
       }
     });
-
-    console.log("Final monthly data:", monthlyData);
 
     // Convert to array format and sort by month
     return Object.entries(monthlyData)
