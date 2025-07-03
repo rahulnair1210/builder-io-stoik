@@ -114,29 +114,36 @@ export class AnalyticsService {
 
   private calculateTopSellingItems(
     orders: any[],
-  ): Array<{ name: string; quantity: number; revenue: number }> {
-    const itemStats: { [key: string]: { quantity: number; revenue: number } } =
-      {};
+  ): Array<{ tshirt: any; quantitySold: number; revenue: number }> {
+    const itemStats: {
+      [key: string]: { tshirt: any; quantitySold: number; revenue: number };
+    } = {};
 
     orders.forEach((order) => {
       order.items.forEach((item: any) => {
-        const itemKey = `${item.name} (${item.size}, ${item.color})`;
+        // Use tshirtId as the key for grouping
+        const itemKey = item.tshirtId || item.id;
         if (!itemStats[itemKey]) {
-          itemStats[itemKey] = { quantity: 0, revenue: 0 };
+          itemStats[itemKey] = {
+            tshirt: item.tshirt || {
+              id: item.tshirtId,
+              name: item.name || "Unknown Product",
+              size: item.size || "N/A",
+              color: item.color || "N/A",
+              category: item.category || "N/A",
+            },
+            quantitySold: 0,
+            revenue: 0,
+          };
         }
-        itemStats[itemKey].quantity += item.quantity;
+        itemStats[itemKey].quantitySold += item.quantity;
         itemStats[itemKey].revenue += item.totalSelling;
       });
     });
 
-    // Convert to array and sort by quantity
-    return Object.entries(itemStats)
-      .map(([name, stats]) => ({
-        name,
-        quantity: stats.quantity,
-        revenue: stats.revenue,
-      }))
-      .sort((a, b) => b.quantity - a.quantity)
+    // Convert to array and sort by quantity sold
+    return Object.values(itemStats)
+      .sort((a, b) => b.quantitySold - a.quantitySold)
       .slice(0, 5); // Top 5 items
   }
 
