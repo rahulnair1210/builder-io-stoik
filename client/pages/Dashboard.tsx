@@ -40,6 +40,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardStats();
+
+    // Auto-refresh dashboard data every 30 seconds to keep profit trends dynamic
+    const interval = setInterval(() => {
+      fetchDashboardStats();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchDashboardStats = async () => {
