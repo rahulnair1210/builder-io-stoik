@@ -25,6 +25,9 @@ const currencyConfig = {
   EUR: { symbol: "€", position: "after" },
   GBP: { symbol: "£", position: "before" },
   INR: { symbol: "₹", position: "before" },
+  CAD: { symbol: "C$", position: "before" },
+  AUD: { symbol: "A$", position: "before" },
+  JPY: { symbol: "¥", position: "before" },
 };
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
