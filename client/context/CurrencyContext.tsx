@@ -36,25 +36,44 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
   const loadCurrency = async () => {
     try {
+      // First check localStorage for immediate loading
+      const savedCurrency = localStorage.getItem("currency");
+      if (savedCurrency) {
+        setCurrencyState(savedCurrency);
+      }
+
+      // Then fetch from backend settings
       const response = await fetch("/api/settings");
       const data = await response.json();
       if (data.success && data.data.business?.currency) {
-        setCurrencyState(data.data.business.currency);
+        const backendCurrency = data.data.business.currency;
+        setCurrencyState(backendCurrency);
+        localStorage.setItem("currency", backendCurrency);
       }
     } catch (error) {
       console.error("Error loading currency:", error);
+      // Fallback to localStorage or default
+      const savedCurrency = localStorage.getItem("currency");
+      if (savedCurrency) {
+        setCurrencyState(savedCurrency);
+      }
     }
   };
 
   const setCurrency = async (newCurrency: string) => {
     setCurrencyState(newCurrency);
-    // Optionally save to settings immediately
+
+    // Save to localStorage for immediate persistence
+    localStorage.setItem("currency", newCurrency);
+
+    // Save to backend settings
     try {
       await fetch("/api/settings/currency", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currency: newCurrency }),
       });
+      console.log(`Currency updated to ${newCurrency}`);
     } catch (error) {
       console.error("Error saving currency:", error);
     }
