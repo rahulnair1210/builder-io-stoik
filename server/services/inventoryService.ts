@@ -117,19 +117,34 @@ export class InventoryService {
   ): Promise<TShirt> {
     try {
       const now = new Date().toISOString();
-      const product: TShirt = {
+
+      if (!isFirebaseAvailable) {
+        const product: TShirt = {
+          ...productData,
+          id: Date.now().toString(),
+          createdAt: now,
+          updatedAt: now,
+        };
+        return MockDataStore.addProduct(product);
+      }
+
+      // For Firestore, create without ID first
+      const productWithoutId = {
         ...productData,
-        id: !isFirebaseAvailable ? Date.now().toString() : "",
         createdAt: now,
         updatedAt: now,
       };
 
-      if (!isFirebaseAvailable) {
-        return MockDataStore.addProduct(product);
-      }
+      // Add to Firestore and get the document reference
+      const docRef = await this.collection.add(productWithoutId);
 
-      const docRef = await this.collection.add(product);
-      return { id: docRef.id, ...product };
+      // Return the product with the Firestore-generated ID
+      const newProduct: TShirt = {
+        id: docRef.id,
+        ...productWithoutId,
+      };
+
+      return newProduct;
     } catch (error) {
       console.error("Error creating product:", error);
       throw error;
