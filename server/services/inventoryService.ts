@@ -7,6 +7,34 @@ export class InventoryService {
     ? db.collection(COLLECTIONS.PRODUCTS)
     : null;
 
+  // Cleanup method to fix documents with empty IDs
+  async cleanupEmptyIds(): Promise<void> {
+    if (!isFirebaseAvailable) return;
+
+    try {
+      const snapshot = await this.collection.get();
+      const batch = db.batch();
+      let hasUpdates = false;
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        // If the stored document has an empty ID or wrong ID, update it
+        if (!data.id || data.id === "" || data.id !== doc.id) {
+          batch.update(doc.ref, { id: doc.id });
+          hasUpdates = true;
+          console.log(`Fixing document ${doc.id} with empty/wrong ID`);
+        }
+      });
+
+      if (hasUpdates) {
+        await batch.commit();
+        console.log("✅ Fixed documents with empty IDs");
+      }
+    } catch (error) {
+      console.error("Error cleaning up empty IDs:", error);
+    }
+  }
+
   async getAllProducts(filters?: any): Promise<TShirt[]> {
     try {
       if (!isFirebaseAvailable) {
