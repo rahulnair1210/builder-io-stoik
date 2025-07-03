@@ -51,7 +51,12 @@ export class InventoryService {
 
       let products: TShirt[] = [];
       snapshot.forEach((doc) => {
-        products.push({ id: doc.id, ...doc.data() } as TShirt);
+        const data = doc.data() as TShirt;
+        // Ensure the document has the correct Firestore ID, not an empty string
+        products.push({
+          ...data,
+          id: doc.id, // Always use the Firestore document ID
+        });
       });
 
       // Apply all filters in memory to avoid index requirements
