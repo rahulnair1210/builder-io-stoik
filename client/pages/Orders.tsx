@@ -31,6 +31,7 @@ import {
   MoreHorizontal,
   Eye,
   Edit,
+  Trash2,
   Truck,
   Package,
   DollarSign,
