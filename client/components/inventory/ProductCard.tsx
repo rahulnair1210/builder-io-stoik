@@ -14,8 +14,10 @@ import {
   Package,
   AlertTriangle,
   DollarSign,
+  Eye,
 } from "lucide-react";
 import { TShirt } from "@shared/types";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface ProductCardProps {
   product: TShirt;
@@ -32,9 +34,19 @@ export function ProductCard({
   onAdjustStock,
   onViewDetails,
 }: ProductCardProps) {
+  const { formatCurrency } = useCurrency();
+
+  const getTotalStock = () => {
+    if (product.sizeStocks && product.sizeStocks.length > 0) {
+      return product.sizeStocks.reduce((sum, ss) => sum + ss.stockLevel, 0);
+    }
+    return product.stockLevel || 0;
+  };
+
   const getStockStatus = () => {
-    if (product.stockLevel === 0) return "out_of_stock";
-    if (product.stockLevel <= 8) return "low_stock";
+    const totalStock = getTotalStock();
+    if (totalStock === 0) return "out_of_stock";
+    if (totalStock <= 8) return "low_stock";
     return "in_stock";
   };
 
@@ -68,11 +80,12 @@ export function ProductCard({
   };
 
   const profitPerUnit = product.sellingPrice - product.costPrice;
-  const totalProfit = profitPerUnit * product.stockLevel;
+  const totalStock = getTotalStock();
+  const totalProfit = profitPerUnit * totalStock;
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 group">
-      <CardContent className="p-6">
+    <Card className="hover:shadow-lg transition-all duration-200 group cursor-pointer">
+      <CardContent className="p-6" onClick={() => onViewDetails(product)}>
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
@@ -84,12 +97,16 @@ export function ProductCard({
             </p>
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Button variant="ghost" size="sm">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onViewDetails(product)}>
+                <Eye className="h-4 w-4 mr-2" />
+                View Details
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onAdjustStock(product)}>
                 <Package className="h-4 w-4 mr-2" />
                 Adjust Stock
@@ -109,49 +126,86 @@ export function ProductCard({
           </DropdownMenu>
         </div>
 
-        {/* Size and Category */}
+        {/* Category */}
         <div className="flex gap-2 mb-4">
-          <Badge variant="outline">{product.size}</Badge>
           <Badge variant="secondary">{product.category}</Badge>
         </div>
 
         {/* Stock Status */}
         <div className="mb-4">{getStockBadge()}</div>
 
-        {/* Stock Level */}
-        <div className="space-y-2 mb-4">
-          <div className="flex justify-between text-sm">
-            <span className="text-slate-600">Current Stock:</span>
-            <span
-              className={`font-medium ${
-                product.stockLevel <= product.minStockLevel
-                  ? "text-warning"
-                  : ""
-              }`}
-            >
-              {product.stockLevel} units
-            </span>
+        {/* Size Stock Information */}
+        {product.sizeStocks && product.sizeStocks.length > 0 ? (
+          <div className="space-y-3 mb-4">
+            <h4 className="text-sm font-medium text-slate-700">
+              Size Quantities:
+            </h4>
+            <div className="grid grid-cols-3 gap-2">
+              {product.sizeStocks.map((sizeStock) => (
+                <div
+                  key={sizeStock.size}
+                  className="text-center p-2 border border-slate-200 rounded"
+                >
+                  <div className="text-xs font-medium text-slate-600">
+                    {sizeStock.size}
+                  </div>
+                  <div
+                    className={`text-sm font-bold ${
+                      sizeStock.stockLevel <= sizeStock.minStockLevel
+                        ? "text-warning"
+                        : "text-slate-900"
+                    }`}
+                  >
+                    {sizeStock.stockLevel}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-xs text-slate-500 text-center">
+              Total: {totalStock} units
+            </div>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-slate-600">Min Stock:</span>
-            <span className="text-slate-600">{product.minStockLevel}</span>
+        ) : (
+          <div className="space-y-2 mb-4">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-600">Current Stock:</span>
+              <span
+                className={`font-medium ${
+                  (product.stockLevel || 0) <= (product.minStockLevel || 0)
+                    ? "text-warning"
+                    : ""
+                }`}
+              >
+                {product.stockLevel || 0} units
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-600">Min Stock:</span>
+              <span className="text-slate-600">
+                {product.minStockLevel || 0}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Pricing */}
         <div className="space-y-2 mb-4 p-3 bg-slate-50 rounded-lg">
           <div className="flex justify-between text-sm">
             <span className="text-slate-600">Cost:</span>
-            <span className="font-medium">${product.costPrice}</span>
+            <span className="font-medium">
+              {formatCurrency(product.costPrice)}
+            </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-slate-600">Selling:</span>
-            <span className="font-medium">${product.sellingPrice}</span>
+            <span className="font-medium">
+              {formatCurrency(product.sellingPrice)}
+            </span>
           </div>
           <div className="flex justify-between text-sm border-t pt-2">
             <span className="text-slate-600">Profit/Unit:</span>
             <span className="font-medium text-accent">
-              ${profitPerUnit.toFixed(2)}
+              {formatCurrency(profitPerUnit)}
             </span>
           </div>
         </div>
@@ -161,19 +215,19 @@ export function ProductCard({
           <div className="p-2 bg-primary/10 rounded">
             <p className="text-xs text-slate-600">Total Value</p>
             <p className="font-semibold text-primary">
-              ${(product.stockLevel * product.sellingPrice).toLocaleString()}
+              {formatCurrency(totalStock * product.sellingPrice)}
             </p>
           </div>
           <div className="p-2 bg-accent/10 rounded">
             <p className="text-xs text-slate-600">Total Profit</p>
             <p className="font-semibold text-accent">
-              ${totalProfit.toLocaleString()}
+              {formatCurrency(totalProfit)}
             </p>
           </div>
         </div>
 
         {/* Tags */}
-        {product.tags.length > 0 && (
+        {product.tags && product.tags.length > 0 && (
           <div className="mt-4">
             <div className="flex flex-wrap gap-1">
               {product.tags.slice(0, 3).map((tag) => (
