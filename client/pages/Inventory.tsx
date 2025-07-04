@@ -660,6 +660,10 @@ export default function Inventory() {
                       setSelectedProduct(product);
                       setShowStockDialog(true);
                     }}
+                    onViewDetails={(product) => {
+                      setSelectedProduct(product);
+                      setShowDetailDialog(true);
+                    }}
                   />
                 ))}
               </div>
