@@ -603,7 +603,14 @@ export default function Orders() {
                     </TableHeader>
                     <TableBody>
                       {orders.map((order) => (
-                        <TableRow key={order.id}>
+                        <TableRow
+                          key={order.id}
+                          className="cursor-pointer hover:bg-slate-50"
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setShowOrderDetails(true);
+                          }}
+                        >
                           <TableCell>
                             <span className="font-medium">#{order.id}</span>
                           </TableCell>
@@ -623,7 +630,8 @@ export default function Orders() {
                                 <div
                                   key={index}
                                   className="text-sm cursor-pointer hover:text-primary transition-colors"
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     if (item.tshirt) {
                                       setSelectedProduct(item.tshirt);
                                       setShowProductDetail(true);
