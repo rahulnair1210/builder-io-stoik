@@ -605,15 +605,60 @@ export default function Inventory() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span
-                          className={`font-medium ${
-                            product.stockLevel <= product.minStockLevel
-                              ? "text-warning"
-                              : ""
-                          }`}
-                        >
-                          {product.stockLevel}
-                        </span>
+                        {product.sizeStocks && product.sizeStocks.length > 0 ? (
+                          <div className="space-y-1">
+                            <div className="text-xs space-y-0.5">
+                              {product.sizeStocks
+                                .slice(0, 3)
+                                .map((sizeStock) => (
+                                  <div
+                                    key={sizeStock.size}
+                                    className="flex justify-between"
+                                  >
+                                    <span className="text-slate-500">
+                                      {sizeStock.size}:
+                                    </span>
+                                    <span
+                                      className={`font-medium ${
+                                        sizeStock.stockLevel <=
+                                        sizeStock.minStockLevel
+                                          ? "text-warning"
+                                          : ""
+                                      }`}
+                                    >
+                                      {sizeStock.stockLevel}
+                                    </span>
+                                  </div>
+                                ))}
+                              {product.sizeStocks.length > 3 && (
+                                <div className="text-slate-400">
+                                  +{product.sizeStocks.length - 3} more
+                                </div>
+                              )}
+                            </div>
+                            <div className="border-t pt-1">
+                              <div className="flex justify-between text-sm font-medium">
+                                <span>Total:</span>
+                                <span className="text-primary">
+                                  {product.sizeStocks.reduce(
+                                    (sum, ss) => sum + ss.stockLevel,
+                                    0,
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <span
+                            className={`font-medium ${
+                              product.stockLevel <= product.minStockLevel
+                                ? "text-warning"
+                                : ""
+                            }`}
+                          >
+                            {product.stockLevel}
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell>${product.costPrice}</TableCell>
                       <TableCell>${product.sellingPrice}</TableCell>
