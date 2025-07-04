@@ -22,6 +22,7 @@ interface ProductCardProps {
   onEdit: (product: TShirt) => void;
   onDelete: (id: string) => void;
   onAdjustStock: (product: TShirt) => void;
+  onViewDetails: (product: TShirt) => void;
 }
 
 export function ProductCard({
@@ -29,6 +30,7 @@ export function ProductCard({
   onEdit,
   onDelete,
   onAdjustStock,
+  onViewDetails,
 }: ProductCardProps) {
   const getStockStatus = () => {
     if (product.stockLevel === 0) return "out_of_stock";
