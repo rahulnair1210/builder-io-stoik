@@ -354,115 +354,170 @@ export function BulkOrderForm({
               </div>
             </div>
 
-            {orderItems.map((item, index) => (
-              <Card key={index}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <Label>Product</Label>
-                      <Select
-                        value={item.tshirtId}
-                        onValueChange={(value) =>
-                          handleItemChange(index, "tshirtId", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a product" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {products
-                            .filter(
-                              (product) =>
-                                product.id && product.id.trim() !== "",
-                            )
-                            .map((product) => (
+            {orderItems.map((item, index) => {
+              const selectedProduct = item.tshirt;
+              const availableSizes =
+                selectedProduct?.sizeStocks?.filter(
+                  (ss) => ss.stockLevel > 0,
+                ) || [];
+              const selectedSizeStock = selectedProduct?.sizeStocks?.find(
+                (ss) => ss.size === item.size,
+              );
+              const maxQuantity = selectedSizeStock?.stockLevel || 0;
+
+              return (
+                <Card key={index}>
+                  <CardContent className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                      {/* Product Selection */}
+                      <div className="col-span-2">
+                        <Label>Product</Label>
+                        <Select
+                          value={item.tshirtId}
+                          onValueChange={(value) =>
+                            handleItemChange(index, "tshirtId", value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a product" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {products
+                              .filter(
+                                (product) =>
+                                  product.id && product.id.trim() !== "",
+                              )
+                              .map((product) => {
+                                const totalStock =
+                                  product.sizeStocks?.reduce(
+                                    (sum, ss) => sum + ss.stockLevel,
+                                    0,
+                                  ) ||
+                                  product.stockLevel ||
+                                  0;
+                                return (
+                                  <SelectItem
+                                    key={product.id}
+                                    value={product.id}
+                                    disabled={totalStock === 0}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      {product.name} - {product.color}
+                                      <Badge variant="outline">
+                                        ${product.sellingPrice}
+                                      </Badge>
+                                      <Badge
+                                        variant={
+                                          totalStock > 0
+                                            ? "secondary"
+                                            : "destructive"
+                                        }
+                                      >
+                                        {totalStock === 0
+                                          ? "Out of Stock"
+                                          : `${totalStock} total`}
+                                      </Badge>
+                                    </div>
+                                  </SelectItem>
+                                );
+                              })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Size Selection */}
+                      <div>
+                        <Label>Size</Label>
+                        <Select
+                          value={item.size}
+                          onValueChange={(value) =>
+                            handleItemChange(index, "size", value)
+                          }
+                          disabled={!selectedProduct}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Size" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableSizes.map((sizeStock) => (
                               <SelectItem
-                                key={product.id}
-                                value={product.id}
-                                disabled={product.stockLevel === 0}
+                                key={sizeStock.size}
+                                value={sizeStock.size}
                               >
                                 <div className="flex items-center gap-2">
-                                  {product.name} - {product.size}{" "}
-                                  {product.color}
-                                  <Badge variant="outline">
-                                    ${product.sellingPrice}
-                                  </Badge>
-                                  <Badge
-                                    variant={
-                                      product.stockLevel > 0
-                                        ? "secondary"
-                                        : "destructive"
-                                    }
-                                  >
-                                    {product.stockLevel === 0
-                                      ? "Out of Stock"
-                                      : `${product.stockLevel} in stock`}
+                                  {sizeStock.size}
+                                  <Badge variant="outline" className="text-xs">
+                                    {sizeStock.stockLevel} available
                                   </Badge>
                                 </div>
                               </SelectItem>
                             ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="w-24">
-                      <Label>Quantity</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        max={item.tshirt?.stockLevel || 0}
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value) || 1;
-                          const maxStock = item.tshirt?.stockLevel || 0;
-                          if (value > maxStock) {
-                            alert(`Only ${maxStock} units available in stock`);
-                            return;
-                          }
-                          handleItemChange(index, "quantity", value);
-                        }}
-                        className={
-                          item.tshirt && item.tshirt.stockLevel === 0
-                            ? "border-destructive bg-destructive/10"
-                            : ""
-                        }
-                        disabled={item.tshirt && item.tshirt.stockLevel === 0}
-                      />
-                      {item.tshirt && item.tshirt.stockLevel === 0 && (
-                        <p className="text-xs text-destructive mt-1">
-                          Out of stock
-                        </p>
-                      )}
-                    </div>
-
-                    {item.tshirt && (
-                      <div className="text-right">
-                        <p className="text-sm text-slate-600">Unit Price</p>
-                        <p className="font-medium">
-                          ${item.tshirt.sellingPrice}
-                        </p>
-                        <p className="text-sm text-accent">
-                          Total: $
-                          {(item.tshirt.sellingPrice * item.quantity).toFixed(
-                            2,
-                          )}
-                        </p>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    )}
 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeOrderItem(index)}
-                      disabled={orderItems.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      {/* Quantity */}
+                      <div>
+                        <Label>Quantity</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max={maxQuantity}
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 1;
+                            if (value > maxQuantity) {
+                              alert(
+                                `Only ${maxQuantity} units available for size ${item.size}`,
+                              );
+                              return;
+                            }
+                            handleItemChange(index, "quantity", value);
+                          }}
+                          className={
+                            maxQuantity === 0
+                              ? "border-destructive bg-destructive/10"
+                              : ""
+                          }
+                          disabled={!selectedProduct || maxQuantity === 0}
+                        />
+                        {selectedProduct && maxQuantity === 0 && (
+                          <p className="text-xs text-destructive mt-1">
+                            Size unavailable
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Price and Actions */}
+                      <div className="flex items-end justify-between">
+                        {selectedProduct && (
+                          <div className="text-right">
+                            <p className="text-xs text-slate-600">Total</p>
+                            <p className="font-medium">
+                              $
+                              {(
+                                selectedProduct.sellingPrice * item.quantity
+                              ).toFixed(2)}
+                            </p>
+                          </div>
+                        )}
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeOrderItem(index)}
+                          disabled={orderItems.length === 1}
+                          className="ml-2"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Quantity Validation */}
