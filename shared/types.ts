@@ -2,14 +2,24 @@
  * Shared types for T-Shirt Inventory Management Application
  */
 
+export interface SizeStock {
+  size: "XS" | "S" | "M" | "L" | "XL" | "XXL";
+  stockLevel: number;
+  minStockLevel: number;
+}
+
 export interface TShirt {
   id: string;
   name: string;
   design: string;
-  size: "XS" | "S" | "M" | "L" | "XL" | "XXL";
+  // Keep single size for backward compatibility, but prefer sizeStocks
+  size?: "XS" | "S" | "M" | "L" | "XL" | "XXL";
   color: string;
-  stockLevel: number;
-  minStockLevel: number;
+  // Keep single stockLevel for backward compatibility
+  stockLevel?: number;
+  minStockLevel?: number;
+  // New multi-size support
+  sizeStocks: SizeStock[];
   costPrice: number;
   sellingPrice: number;
   category: string;
