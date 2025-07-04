@@ -241,11 +241,14 @@ export default function Orders() {
         );
 
         // Add notification for successful update
+        const order = orders.find((o) => o.id === orderId);
+        const customerName = order?.customer?.name || "Unknown Customer";
+
         window.dispatchEvent(
           new CustomEvent("addNotification", {
             detail: {
               type: "order_update",
-              message: `Order #${orderId} details have been updated`,
+              message: `Order for ${customerName} has been updated`,
             },
           }),
         );
