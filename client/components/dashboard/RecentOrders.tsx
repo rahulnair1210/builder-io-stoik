@@ -101,7 +101,8 @@ export function RecentOrders() {
             {orders.map((order) => (
               <div
                 key={order.id}
-                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                onClick={() => handleOrderClick(order)}
               >
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -124,7 +125,12 @@ export function RecentOrders() {
                   <p className="text-sm text-accent">
                     +${order.profit.toFixed(2)} profit
                   </p>
-                  <Button variant="ghost" size="sm" className="mt-1 h-6 px-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-1 h-6 px-2"
+                    onClick={(e) => handleViewOrder(order, e)}
+                  >
                     <Eye className="h-3 w-3 mr-1" />
                     View
                   </Button>
