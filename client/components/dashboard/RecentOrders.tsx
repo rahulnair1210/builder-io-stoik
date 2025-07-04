@@ -140,6 +140,12 @@ export function RecentOrders() {
           </div>
         )}
       </CardContent>
+
+      <OrderDetailDialog
+        order={selectedOrder}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+      />
     </Card>
   );
 }
