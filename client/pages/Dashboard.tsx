@@ -460,15 +460,27 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Button variant="outline" className="h-20 flex-col">
+              <Button
+                variant="outline"
+                className="h-20 flex-col"
+                onClick={() => (window.location.href = "/inventory")}
+              >
                 <Package className="h-6 w-6 mb-2" />
                 Add Product
               </Button>
-              <Button variant="outline" className="h-20 flex-col">
+              <Button
+                variant="outline"
+                className="h-20 flex-col"
+                onClick={() => (window.location.href = "/orders")}
+              >
                 <ShoppingCart className="h-6 w-6 mb-2" />
                 New Order
               </Button>
-              <Button variant="outline" className="h-20 flex-col">
+              <Button
+                variant="outline"
+                className="h-20 flex-col"
+                onClick={() => (window.location.href = "/customers")}
+              >
                 <Users className="h-6 w-6 mb-2" />
                 Add Customer
               </Button>
