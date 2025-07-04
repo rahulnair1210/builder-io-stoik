@@ -218,6 +218,7 @@ export function BulkOrderForm({
       id: `item_${index}`,
       tshirtId: item.tshirtId,
       tshirt: item.tshirt,
+      size: item.size,
       quantity: item.quantity,
       unitCost: item.tshirt!.costPrice,
       unitSelling: item.tshirt!.sellingPrice,
