@@ -34,6 +34,7 @@ interface BulkOrderFormProps {
 interface BulkOrderItem {
   tshirtId: string;
   tshirt?: TShirt;
+  size: "XS" | "S" | "M" | "L" | "XL" | "XXL";
   quantity: number;
 }
 
