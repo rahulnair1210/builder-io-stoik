@@ -670,6 +670,13 @@ export default function Orders() {
                                   <Edit className="h-4 w-4 mr-2" />
                                   Edit Order
                                 </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteOrder(order.id)}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete Order
+                                </DropdownMenuItem>
                                 {order.status === "pending" && (
                                   <DropdownMenuItem
                                     onClick={() =>
