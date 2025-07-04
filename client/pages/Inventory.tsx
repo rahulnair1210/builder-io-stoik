@@ -680,6 +680,19 @@ export default function Inventory() {
             onUpdate={handleStockUpdate}
           />
         )}
+
+        {/* Product Detail Dialog */}
+        <ProductDetailDialog
+          product={selectedProduct}
+          open={showDetailDialog}
+          onOpenChange={setShowDetailDialog}
+          onEdit={(product) => {
+            setShowDetailDialog(false);
+            setSelectedProduct(product);
+            setShowProductForm(true);
+          }}
+          onDelete={handleDeleteProduct}
+        />
       </div>
     </div>
   );
