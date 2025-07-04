@@ -929,7 +929,14 @@ export default function Orders() {
                     </TableHeader>
                     <TableBody>
                       {orders.map((order) => (
-                        <TableRow key={order.id}>
+                        <TableRow
+                          key={order.id}
+                          className="cursor-pointer hover:bg-slate-50"
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setShowOrderDetails(true);
+                          }}
+                        >
                           <TableCell>
                             <span className="font-medium">#{order.id}</span>
                           </TableCell>
