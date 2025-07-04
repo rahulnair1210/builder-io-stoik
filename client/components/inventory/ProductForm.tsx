@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
-import { TShirt } from "@shared/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { X, Plus, Package } from "lucide-react";
+import { TShirt, SizeStock } from "@shared/types";
 
 interface ProductFormProps {
   product?: TShirt;
@@ -20,7 +21,7 @@ interface ProductFormProps {
   onCancel: () => void;
 }
 
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 const CATEGORIES = ["Casual", "Formal", "Sports", "Vintage", "Premium"];
 const COLORS = [
   "Black",
@@ -41,68 +42,58 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
   const [formData, setFormData] = useState({
     name: product?.name || "",
     design: product?.design || "",
-    size: product?.size || ("" as TShirt["size"]),
     color: product?.color || "",
-    stockLevel: product?.stockLevel || 0,
-    minStockLevel: product?.minStockLevel || 5,
     costPrice: product?.costPrice || 0,
     sellingPrice: product?.sellingPrice || 0,
     category: product?.category || "",
     tags: product?.tags || [],
-    photos: product?.photos || [],
+  });
+
+  const [sizeStocks, setSizeStocks] = useState<SizeStock[]>(() => {
+    if (product?.sizeStocks && product.sizeStocks.length > 0) {
+      return product.sizeStocks;
+    }
+    // Default to one size if creating new product
+    return [
+      {
+        size: "M" as const,
+        stockLevel: 0,
+        minStockLevel: 5,
+      },
+    ];
   });
 
   const [newTag, setNewTag] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Fixed input handlers to prevent typing issues
-  const handleInputChange = (field: string) => {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value = e.target.value;
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    };
+  // Available sizes (ones not already added)
+  const availableSizes = SIZES.filter(
+    (size) => !sizeStocks.some((ss) => ss.size === size),
+  );
+
+  const addSizeStock = (size: (typeof SIZES)[number]) => {
+    setSizeStocks([
+      ...sizeStocks,
+      {
+        size,
+        stockLevel: 0,
+        minStockLevel: 5,
+      },
+    ]);
   };
 
-  const handleNumberChange = (field: string) => {
-    return (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value === "" ? 0 : parseFloat(e.target.value) || 0;
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    };
+  const updateSizeStock = (
+    index: number,
+    field: keyof SizeStock,
+    value: number | string,
+  ) => {
+    setSizeStocks(
+      sizeStocks.map((ss, i) => (i === index ? { ...ss, [field]: value } : ss)),
+    );
   };
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) newErrors.name = "Product name is required";
-    if (!formData.design.trim()) newErrors.design = "Design is required";
-    if (!formData.size) newErrors.size = "Size is required";
-    if (!formData.color.trim()) newErrors.color = "Color is required";
-    if (!formData.category) newErrors.category = "Category is required";
-    if (formData.costPrice <= 0)
-      newErrors.costPrice = "Cost price must be greater than 0";
-    if (formData.sellingPrice <= 0)
-      newErrors.sellingPrice = "Selling price must be greater than 0";
-    if (formData.sellingPrice <= formData.costPrice)
-      newErrors.sellingPrice = "Selling price must be greater than cost price";
-    if (formData.stockLevel < 0)
-      newErrors.stockLevel = "Stock level cannot be negative";
-    if (formData.minStockLevel < 0)
-      newErrors.minStockLevel = "Minimum stock level cannot be negative";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit(formData as Omit<TShirt, "id" | "createdAt" | "updatedAt">);
+  const removeSizeStock = (index: number) => {
+    if (sizeStocks.length > 1) {
+      setSizeStocks(sizeStocks.filter((_, i) => i !== index));
     }
   };
 
@@ -123,227 +114,308 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
     });
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.name.trim()) {
+      alert("Product name is required");
+      return;
+    }
+
+    if (sizeStocks.length === 0) {
+      alert("At least one size is required");
+      return;
+    }
+
+    if (!formData.color) {
+      alert("Color is required");
+      return;
+    }
+
+    // Calculate total stock for backward compatibility
+    const totalStock = sizeStocks.reduce((sum, ss) => sum + ss.stockLevel, 0);
+    const avgMinStock = Math.round(
+      sizeStocks.reduce((sum, ss) => sum + ss.minStockLevel, 0) /
+        sizeStocks.length,
+    );
+
+    const productData = {
+      ...formData,
+      sizeStocks,
+      // Backward compatibility fields
+      stockLevel: totalStock,
+      minStockLevel: avgMinStock,
+      size: sizeStocks[0]?.size, // Default to first size
+      photos: [],
+    };
+
+    onSubmit(productData);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Product Name</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={handleInputChange("name")}
-            placeholder="e.g., Classic Cotton Tee"
-          />
-          {errors.name && (
-            <p className="text-sm text-destructive">{errors.name}</p>
-          )}
-        </div>
+      {/* Basic Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Product Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="name">Product Name *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                placeholder="e.g., Premium Cotton T-Shirt"
+                required
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="design">Design</Label>
-          <Input
-            id="design"
-            value={formData.design}
-            onChange={handleInputChange("design")}
-            placeholder="e.g., Vintage Logo"
-          />
-          {errors.design && (
-            <p className="text-sm text-destructive">{errors.design}</p>
-          )}
-        </div>
+            <div>
+              <Label htmlFor="design">Design</Label>
+              <Input
+                id="design"
+                value={formData.design}
+                onChange={(e) =>
+                  setFormData({ ...formData, design: e.target.value })
+                }
+                placeholder="e.g., Minimalist Logo"
+              />
+            </div>
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="size">Size</Label>
-          <Select
-            value={formData.size}
-            onValueChange={(value) =>
-              setFormData({ ...formData, size: value as TShirt["size"] })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select size" />
-            </SelectTrigger>
-            <SelectContent>
-              {SIZES.map((size) => (
-                <SelectItem key={size} value={size}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.size && (
-            <p className="text-sm text-destructive">{errors.size}</p>
-          )}
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="color">Color *</Label>
+              <Select
+                value={formData.color}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, color: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select color" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COLORS.map((color) => (
+                    <SelectItem key={color} value={color}>
+                      {color}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="color">Color</Label>
-          <Select
-            value={formData.color}
-            onValueChange={(value) =>
-              setFormData({ ...formData, color: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select color" />
-            </SelectTrigger>
-            <SelectContent>
-              {COLORS.map((color) => (
-                <SelectItem key={color} value={color}>
-                  {color}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.color && (
-            <p className="text-sm text-destructive">{errors.color}</p>
-          )}
-        </div>
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, category: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select
-            value={formData.category}
-            onValueChange={(value) =>
-              setFormData({ ...formData, category: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {CATEGORIES.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.category && (
-            <p className="text-sm text-destructive">{errors.category}</p>
-          )}
-        </div>
+            <div>
+              <Label htmlFor="costPrice">Cost Price</Label>
+              <Input
+                id="costPrice"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.costPrice}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    costPrice: parseFloat(e.target.value) || 0,
+                  })
+                }
+                placeholder="0.00"
+              />
+            </div>
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="stockLevel">Current Stock</Label>
-          <Input
-            id="stockLevel"
-            type="number"
-            min="0"
-            value={formData.stockLevel}
-            onChange={handleNumberChange("stockLevel")}
-          />
-          {errors.stockLevel && (
-            <p className="text-sm text-destructive">{errors.stockLevel}</p>
-          )}
-        </div>
+          <div>
+            <Label htmlFor="sellingPrice">Selling Price</Label>
+            <Input
+              id="sellingPrice"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.sellingPrice}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  sellingPrice: parseFloat(e.target.value) || 0,
+                })
+              }
+              placeholder="0.00"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="space-y-2">
-          <Label htmlFor="minStockLevel">Minimum Stock Level</Label>
-          <Input
-            id="minStockLevel"
-            type="number"
-            min="0"
-            value={formData.minStockLevel}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                minStockLevel: parseInt(e.target.value),
-              })
-            }
-          />
-          {errors.minStockLevel && (
-            <p className="text-sm text-destructive">{errors.minStockLevel}</p>
-          )}
-        </div>
+      {/* Sizes and Stock */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Sizes & Stock Levels</CardTitle>
+            {availableSizes.length > 0 && (
+              <Select onValueChange={(size) => addSizeStock(size as any)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Add Size" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSizes.map((size) => (
+                    <SelectItem key={size} value={size}>
+                      Add {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {sizeStocks.map((sizeStock, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-4 p-4 border border-slate-200 rounded-lg"
+              >
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-sm font-medium">
+                    {sizeStock.size}
+                  </Badge>
+                </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="costPrice">Cost Price ($)</Label>
-          <Input
-            id="costPrice"
-            type="number"
-            min="0"
-            step="0.01"
-            value={formData.costPrice}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                costPrice: parseFloat(e.target.value),
-              })
-            }
-          />
-          {errors.costPrice && (
-            <p className="text-sm text-destructive">{errors.costPrice}</p>
-          )}
-        </div>
+                <div className="flex-1 grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs">Stock Quantity</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={sizeStock.stockLevel}
+                      onChange={(e) =>
+                        updateSizeStock(
+                          index,
+                          "stockLevel",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
+                      className="h-8"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Min Stock Level</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={sizeStock.minStockLevel}
+                      onChange={(e) =>
+                        updateSizeStock(
+                          index,
+                          "minStockLevel",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
+                      className="h-8"
+                    />
+                  </div>
+                </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="sellingPrice">Selling Price ($)</Label>
-          <Input
-            id="sellingPrice"
-            type="number"
-            min="0"
-            step="0.01"
-            value={formData.sellingPrice}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                sellingPrice: parseFloat(e.target.value),
-              })
-            }
-          />
-          {errors.sellingPrice && (
-            <p className="text-sm text-destructive">{errors.sellingPrice}</p>
-          )}
-          {formData.costPrice > 0 && formData.sellingPrice > 0 && (
-            <p className="text-sm text-slate-600">
-              Profit per unit: $
-              {(formData.sellingPrice - formData.costPrice).toFixed(2)} (
-              {(
-                ((formData.sellingPrice - formData.costPrice) /
-                  formData.costPrice) *
-                100
-              ).toFixed(1)}
-              % margin)
-            </p>
-          )}
-        </div>
-      </div>
+                {sizeStocks.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeSizeStock(index)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+
+            {sizeStocks.length === 0 && (
+              <div className="text-center py-8 text-slate-500">
+                <Package className="h-12 w-12 mx-auto mb-3 text-slate-300" />
+                <p>No sizes added yet</p>
+                <p className="text-sm">Add at least one size to continue</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tags */}
-      <div className="space-y-2">
-        <Label>Tags</Label>
-        <div className="flex flex-wrap gap-2 mb-2">
-          {formData.tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="flex items-center">
-              {tag}
-              <button
-                type="button"
-                onClick={() => removeTag(tag)}
-                className="ml-1 hover:text-destructive"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <Input
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            placeholder="Add a tag"
-            onKeyPress={(e) =>
-              e.key === "Enter" && (e.preventDefault(), addTag())
-            }
-          />
-          <Button type="button" variant="outline" onClick={addTag}>
-            Add
-          </Button>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Tags</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                placeholder="Add a tag..."
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTag();
+                  }
+                }}
+              />
+              <Button type="button" onClick={addTag} variant="outline">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
 
-      {/* Actions */}
-      <div className="flex justify-end gap-2 pt-4 border-t">
+            {formData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {formData.tags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Form Actions */}
+      <div className="flex justify-end gap-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
