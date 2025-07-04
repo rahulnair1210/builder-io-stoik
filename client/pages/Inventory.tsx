@@ -573,7 +573,13 @@ export default function Inventory() {
                   {products.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell>
-                        <div>
+                        <div
+                          className="cursor-pointer hover:text-primary transition-colors"
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setShowDetailDialog(true);
+                          }}
+                        >
                           <p className="font-medium">{product.name}</p>
                           <p className="text-sm text-slate-600">
                             {product.design} • {product.color}
