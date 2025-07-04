@@ -50,6 +50,7 @@ import { OrderDetailsDialog } from "@/components/orders/OrderDetailsDialog";
 import { EditOrderDialog } from "@/components/orders/EditOrderDialog";
 import { OrderCard } from "@/components/orders/OrderCard";
 import { NewOrderDialog } from "@/components/orders/NewOrderDialog";
+import { ProductDetailDialog } from "@/components/inventory/ProductDetailDialog";
 import { useCurrency } from "@/context/CurrencyContext";
 
 export default function Orders() {
