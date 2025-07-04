@@ -346,7 +346,10 @@ export default function Dashboard() {
               <Download className="h-4 w-4 mr-2" />
               Export Report
             </Button>
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              onClick={() => (window.location.href = "/settings")}
+            >
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </Button>
