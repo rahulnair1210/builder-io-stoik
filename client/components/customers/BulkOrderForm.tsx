@@ -543,8 +543,13 @@ export function BulkOrderForm({
                           onChange={(e) => {
                             const value = parseInt(e.target.value) || 1;
                             if (value > maxQuantity) {
+                              const allocatedElsewhere =
+                                getAllocatedStock(item.tshirtId, item.size) -
+                                item.quantity;
+                              const totalStock =
+                                selectedSizeStock?.stockLevel || 0;
                               alert(
-                                `Only ${maxQuantity} units available for size ${item.size}`,
+                                `Only ${maxQuantity} units available for size ${item.size}. Total stock: ${totalStock}, already allocated in this order: ${allocatedElsewhere}`,
                               );
                               return;
                             }
