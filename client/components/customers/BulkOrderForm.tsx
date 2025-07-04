@@ -51,7 +51,7 @@ export function BulkOrderForm({
     customer,
   );
   const [orderItems, setOrderItems] = useState<BulkOrderItem[]>([
-    { tshirtId: "", quantity: 1 },
+    { tshirtId: "", size: "M", quantity: 1 },
   ]);
   const [orderData, setOrderData] = useState({
     paymentMethod: "card" as Order["paymentMethod"],
