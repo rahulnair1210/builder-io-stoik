@@ -81,6 +81,7 @@ export interface OrderItem {
   tshirtId: string;
   tshirt?: TShirt;
   name?: string; // Product name for display
+  size: "XS" | "S" | "M" | "L" | "XL" | "XXL"; // Selected size for this order item
   quantity: number;
   unitCost: number;
   unitSelling: number;
