@@ -329,30 +329,6 @@ export default function Dashboard() {
               )}
               Refresh Data
             </Button>
-            <Button
-              onClick={exportAllData}
-              disabled={exporting}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              {exporting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
-              {exporting ? "Exporting..." : "Export All Data"}
-            </Button>
-            <Button variant="outline" onClick={() => exportReport("profit")}>
-              <Download className="h-4 w-4 mr-2" />
-              Export Report
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => (window.location.href = "/settings")}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
           </div>
         </div>
 
