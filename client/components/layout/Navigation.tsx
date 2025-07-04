@@ -326,7 +326,15 @@ export function Navigation() {
                           >
                             {notification.type === "low_stock"
                               ? "Low Stock Alert"
-                              : "New Order"}
+                              : notification.type === "order_status"
+                                ? "Order Update"
+                                : notification.type === "order_update"
+                                  ? "Order Modified"
+                                  : notification.type === "new_order"
+                                    ? "New Order"
+                                    : notification.type === "customer_created"
+                                      ? "New Customer"
+                                      : "Notification"}
                           </p>
                           <p className="text-xs text-slate-600">
                             {notification.message}
