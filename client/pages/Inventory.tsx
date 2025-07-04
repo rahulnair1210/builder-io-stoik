@@ -50,6 +50,7 @@ import { Navigation } from "@/components/layout/Navigation";
 import { ProductForm } from "@/components/inventory/ProductForm";
 import { ProductCard } from "@/components/inventory/ProductCard";
 import { StockAdjustmentDialog } from "@/components/inventory/StockAdjustmentDialog";
+import { ProductDetailDialog } from "@/components/inventory/ProductDetailDialog";
 
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 const CATEGORIES = ["Casual", "Formal", "Sports", "Vintage", "Premium"];
@@ -66,6 +67,7 @@ export default function Inventory() {
   const [selectedProduct, setSelectedProduct] = useState<TShirt | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showStockDialog, setShowStockDialog] = useState(false);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
 
   useEffect(() => {
     fetchProducts();
