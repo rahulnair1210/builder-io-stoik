@@ -618,9 +618,33 @@ export default function Orders() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className="text-slate-600">
-                              {order.items.length} items
-                            </span>
+                            <div className="space-y-1">
+                              {order.items.slice(0, 2).map((item, index) => (
+                                <div
+                                  key={index}
+                                  className="text-sm cursor-pointer hover:text-primary transition-colors"
+                                  onClick={() => {
+                                    if (item.tshirt) {
+                                      setSelectedProduct(item.tshirt);
+                                      setShowProductDetail(true);
+                                    }
+                                  }}
+                                >
+                                  <span className="font-medium">
+                                    {item.tshirt?.name ||
+                                      `Product #${item.tshirtId}`}
+                                  </span>
+                                  <span className="text-slate-500 ml-1">
+                                    ({item.size}, {item.quantity}x)
+                                  </span>
+                                </div>
+                              ))}
+                              {order.items.length > 2 && (
+                                <div className="text-xs text-slate-400">
+                                  +{order.items.length - 2} more items
+                                </div>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <span className="font-medium">
