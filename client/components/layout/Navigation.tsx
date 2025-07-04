@@ -130,16 +130,16 @@ export function Navigation() {
   useEffect(() => {
     const fetchBadgeCounts = async () => {
       try {
-        // Fetch non-delivered orders count (pending, processing, shipped)
+        // Fetch pending and processing orders count
         const ordersResponse = await fetch("/api/orders");
         let ordersCount = 0;
         if (ordersResponse.ok) {
           const ordersData = await ordersResponse.json();
-          // Count orders that are not delivered or cancelled
+          // Count only pending and processing orders
           ordersCount =
             ordersData.data?.filter(
               (order: any) =>
-                order.status !== "delivered" && order.status !== "cancelled",
+                order.status === "pending" || order.status === "processing",
             ).length || 0;
         }
 
