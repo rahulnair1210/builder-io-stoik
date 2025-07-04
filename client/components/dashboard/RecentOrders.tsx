@@ -64,6 +64,16 @@ export function RecentOrders() {
     });
   };
 
+  const handleOrderClick = (order: Order) => {
+    setSelectedOrder(order);
+    setDetailDialogOpen(true);
+  };
+
+  const handleViewOrder = (order: Order, e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleOrderClick(order);
+  };
+
   return (
     <Card>
       <CardHeader>
