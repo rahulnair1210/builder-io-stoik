@@ -127,7 +127,10 @@ export function BulkOrderForm({
   );
 
   const addOrderItem = () => {
-    setOrderItems((prev) => [...prev, { tshirtId: "", quantity: 1 }]);
+    setOrderItems((prev) => [
+      ...prev,
+      { tshirtId: "", size: "M", quantity: 1 },
+    ]);
   };
 
   const removeOrderItem = (index: number) => {
