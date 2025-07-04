@@ -1059,6 +1059,15 @@ export default function Orders() {
           onOpenChange={setShowNewOrder}
           onOrderCreated={fetchOrders}
         />
+
+        {/* Product Detail Dialog */}
+        <ProductDetailDialog
+          product={selectedProduct}
+          open={showProductDetail}
+          onOpenChange={setShowProductDetail}
+          onEdit={() => {}}
+          onDelete={() => {}}
+        />
       </div>
     </div>
   );
