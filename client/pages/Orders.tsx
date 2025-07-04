@@ -176,11 +176,15 @@ export default function Orders() {
       cancelled: "has been cancelled",
     };
 
+    // Find the order to get customer name
+    const order = orders.find((o) => o.id === orderId);
+    const customerName = order?.customer?.name || "Unknown Customer";
+
     window.dispatchEvent(
       new CustomEvent("addNotification", {
         detail: {
           type: "order_status",
-          message: `Order #${orderId} ${statusMessages[newStatus] || `status changed to ${newStatus}`}`,
+          message: `Order for ${customerName} ${statusMessages[newStatus] || `status changed to ${newStatus}`}`,
         },
       }),
     );
