@@ -246,7 +246,7 @@ export function BulkOrderForm({
     try {
       await onSubmit(order);
       // Reset form on success
-      setOrderItems([{ tshirtId: "", quantity: 1 }]);
+      setOrderItems([{ tshirtId: "", size: "M", quantity: 1 }]);
       setOrderData({
         paymentMethod: "card",
         paymentStatus: "pending",
