@@ -588,7 +588,21 @@ export default function Inventory() {
                       </TableCell>
                       <TableCell>{product.category}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{product.size}</Badge>
+                        {product.sizeStocks && product.sizeStocks.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {product.sizeStocks.map((sizeStock) => (
+                              <Badge
+                                key={sizeStock.size}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {sizeStock.size}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <Badge variant="outline">{product.size}</Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         <span
