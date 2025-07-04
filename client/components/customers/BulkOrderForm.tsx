@@ -103,6 +103,16 @@ export function BulkOrderForm({
     }
   };
 
+  // Calculate allocated stock for a specific product and size in current order
+  const getAllocatedStock = useCallback(
+    (productId: string, size: "XS" | "S" | "M" | "L" | "XL" | "XXL") => {
+      return orderItems
+        .filter((item) => item.tshirtId === productId && item.size === size)
+        .reduce((sum, item) => sum + item.quantity, 0);
+    },
+    [orderItems],
+  );
+
   const handleItemChange = useCallback(
     (index: number, field: keyof BulkOrderItem, value: string | number) => {
       setOrderItems((prev) => {
@@ -113,6 +123,9 @@ export function BulkOrderForm({
             ...newItems[index],
             tshirtId: value as string,
             tshirt: product,
+            // Reset size when product changes
+            size: "M",
+            quantity: 1,
           };
         } else {
           newItems[index] = {
