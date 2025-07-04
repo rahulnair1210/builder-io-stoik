@@ -373,14 +373,36 @@ export function BulkOrderForm({
 
             {orderItems.map((item, index) => {
               const selectedProduct = item.tshirt;
+              // Calculate available stock minus already allocated in current order (excluding current item)
+              const getAvailableStock = (sizeStock: any) => {
+                const allocatedInOtherItems = orderItems
+                  .filter(
+                    (otherItem, otherIndex) =>
+                      otherIndex !== index &&
+                      otherItem.tshirtId === item.tshirtId &&
+                      otherItem.size === sizeStock.size,
+                  )
+                  .reduce((sum, otherItem) => sum + otherItem.quantity, 0);
+                return Math.max(
+                  0,
+                  sizeStock.stockLevel - allocatedInOtherItems,
+                );
+              };
+
               const availableSizes =
-                selectedProduct?.sizeStocks?.filter(
-                  (ss) => ss.stockLevel > 0,
-                ) || [];
+                selectedProduct?.sizeStocks
+                  ?.map((ss) => ({
+                    ...ss,
+                    availableStock: getAvailableStock(ss),
+                  }))
+                  .filter((ss) => ss.availableStock > 0) || [];
+
               const selectedSizeStock = selectedProduct?.sizeStocks?.find(
                 (ss) => ss.size === item.size,
               );
-              const maxQuantity = selectedSizeStock?.stockLevel || 0;
+              const maxQuantity = selectedSizeStock
+                ? getAvailableStock(selectedSizeStock)
+                : 0;
 
               return (
                 <Card key={index}>
