@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Eye } from "lucide-react";
 import { Order } from "@shared/types";
+import { OrderDetailDialog } from "./OrderDetailDialog";
 
 export function RecentOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
