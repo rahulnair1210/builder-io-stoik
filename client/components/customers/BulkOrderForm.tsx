@@ -482,15 +482,52 @@ export function BulkOrderForm({
                               <SelectItem
                                 key={sizeStock.size}
                                 value={sizeStock.size}
+                                disabled={sizeStock.availableStock === 0}
                               >
                                 <div className="flex items-center gap-2">
                                   {sizeStock.size}
-                                  <Badge variant="outline" className="text-xs">
-                                    {sizeStock.stockLevel} available
+                                  <Badge
+                                    variant={
+                                      sizeStock.availableStock > 0
+                                        ? "outline"
+                                        : "destructive"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {sizeStock.availableStock > 0
+                                      ? `${sizeStock.availableStock} available`
+                                      : "No stock left"}
                                   </Badge>
                                 </div>
                               </SelectItem>
                             ))}
+                            {/* Show all sizes with their status for better visibility */}
+                            {selectedProduct?.sizeStocks
+                              ?.filter(
+                                (ss) =>
+                                  !availableSizes.find(
+                                    (avail) => avail.size === ss.size,
+                                  ),
+                              )
+                              .map((sizeStock) => (
+                                <SelectItem
+                                  key={sizeStock.size}
+                                  value={sizeStock.size}
+                                  disabled={true}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    {sizeStock.size}
+                                    <Badge
+                                      variant="destructive"
+                                      className="text-xs"
+                                    >
+                                      {sizeStock.stockLevel > 0
+                                        ? "Already allocated"
+                                        : "Out of stock"}
+                                    </Badge>
+                                  </div>
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
