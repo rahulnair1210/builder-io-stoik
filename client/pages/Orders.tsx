@@ -283,6 +283,42 @@ export default function Orders() {
     );
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this order? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        // Remove order from local state
+        setOrders(orders.filter((order) => order.id !== orderId));
+
+        // Add notification
+        window.dispatchEvent(
+          new CustomEvent("addNotification", {
+            detail: {
+              type: "order_deleted",
+              message: `Order has been deleted successfully`,
+            },
+          }),
+        );
+      } else {
+        throw new Error("Failed to delete order");
+      }
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      alert("Failed to delete order. Please try again.");
+    }
+  };
+
   const getStatusBadge = (status: Order["status"]) => {
     const variants = {
       pending: {
