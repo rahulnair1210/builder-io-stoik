@@ -9,6 +9,8 @@ import { OrderDetailDialog } from "./OrderDetailDialog";
 export function RecentOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchRecentOrders();
